@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { PluginConfig } from '../types';
+import type { PluginConfig, ColumnConfig } from '../types';
 
 interface Props {
     config: PluginConfig;
@@ -8,6 +8,13 @@ interface Props {
 
 export const InputSection: React.FC<Props> = ({ config, onChange }) => {
     const [newModule, setNewModule] = useState('');
+    const [expandedModule, setExpandedModule] = useState<string | null>(null);
+
+    // New Column State
+    const [newColHeader, setNewColHeader] = useState('');
+    const [newColAccessor, setNewColAccessor] = useState('');
+    const [newColType, setNewColType] = useState<ColumnConfig['type']>('text');
+
 
     const handleChange = (field: keyof PluginConfig, value: any) => {
         onChange({ ...config, [field]: value });
@@ -15,7 +22,6 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
 
     const handleProjectNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const name = e.target.value;
-        // Auto-generate slug and const
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         const constName = name.toUpperCase().replace(/[^A-Z0-9]+/g, '_');
 
@@ -32,15 +38,19 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
         if (!newModule.trim()) return;
         const slug = newModule.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-        // Check for duplicates
-        if (config.modules.some(m => m.slug === slug)) {
-            // Ideally show an error, for now just ignore
-            return;
-        }
+        if (config.modules.some(m => m.slug === slug)) return;
 
         onChange({
             ...config,
-            modules: [...config.modules, { name: newModule, slug }]
+            modules: [...config.modules, {
+                name: newModule,
+                slug,
+                columns: [
+                    { header: 'ID', accessorKey: 'id', width: 60, type: 'text' },
+                    { header: 'Date', accessorKey: 'date', width: 150, type: 'date' },
+                    { header: 'Status', accessorKey: 'status', width: 100, type: 'status' }
+                ]
+            }]
         });
         setNewModule('');
     };
@@ -50,6 +60,43 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
             ...config,
             modules: config.modules.filter(m => m.slug !== slug)
         });
+        if (expandedModule === slug) setExpandedModule(null);
+    };
+
+    const handleAddColumn = (moduleSlug: string) => {
+        if (!newColHeader || !newColAccessor) return;
+
+        const updatedModules = config.modules.map(mod => {
+            if (mod.slug === moduleSlug) {
+                return {
+                    ...mod,
+                    columns: [...mod.columns, {
+                        header: newColHeader,
+                        accessorKey: newColAccessor,
+                        type: newColType,
+                        width: 150
+                    }]
+                };
+            }
+            return mod;
+        });
+
+        onChange({ ...config, modules: updatedModules });
+        setNewColHeader('');
+        setNewColAccessor('');
+    };
+
+    const handleRemoveColumn = (moduleSlug: string, accessor: string) => {
+        const updatedModules = config.modules.map(mod => {
+            if (mod.slug === moduleSlug) {
+                return {
+                    ...mod,
+                    columns: mod.columns.filter(c => c.accessorKey !== accessor)
+                };
+            }
+            return mod;
+        });
+        onChange({ ...config, modules: updatedModules });
     };
 
     return (
@@ -76,15 +123,6 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
             </div>
 
             <div className="form-group">
-                <label>Version</label>
-                <input
-                    type="text"
-                    value={config.pluginVersion}
-                    onChange={(e) => handleChange('pluginVersion', e.target.value)}
-                />
-            </div>
-
-            <div className="form-group">
                 <label>Author</label>
                 <input
                     type="text"
@@ -100,7 +138,7 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                     value={newModule}
                     onChange={(e) => setNewModule(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddModule()}
-                    placeholder="Add Module (e.g. Logger)"
+                    placeholder="Add Module (e.g. Courses)"
                 />
                 <button onClick={handleAddModule} className="btn-add">Add</button>
             </div>
@@ -108,13 +146,55 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
             <div className="modules-list">
                 {config.modules.length === 0 && <p className="no-modules">No modules added.</p>}
                 {config.modules.map(m => (
-                    <div key={m.slug} className="module-item">
-                        <span>{m.name}</span>
-                        <button
-                            onClick={() => handleRemoveModule(m.slug)}
-                            className="btn-remove"
-                            title="Remove Module"
-                        >×</button>
+                    <div key={m.slug} className="module-container">
+                        <div className="module-header">
+                            <span onClick={() => setExpandedModule(expandedModule === m.slug ? null : m.slug)} className="module-name-trigger">
+                                {expandedModule === m.slug ? '▼' : '▶'} {m.name}
+                            </span>
+                            <button
+                                onClick={() => handleRemoveModule(m.slug)}
+                                className="btn-remove"
+                            >×</button>
+                        </div>
+
+                        {expandedModule === m.slug && (
+                            <div className="module-schema-editor">
+                                <h4>Table Schema</h4>
+                                <ul className="schema-list">
+                                    {m.columns.map(col => (
+                                        <li key={col.accessorKey}>
+                                            <span>{col.header} <span className="pill">{col.accessorKey}</span> <span className="pill-type">{col.type}</span></span>
+                                            <button onClick={() => handleRemoveColumn(m.slug, col.accessorKey)}>×</button>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="add-col-form">
+                                    <input
+                                        placeholder="Header"
+                                        value={newColHeader}
+                                        onChange={e => setNewColHeader(e.target.value)}
+                                        style={{ width: '30%' }}
+                                    />
+                                    <input
+                                        placeholder="Accessor"
+                                        value={newColAccessor}
+                                        onChange={e => setNewColAccessor(e.target.value)}
+                                        style={{ width: '30%' }}
+                                    />
+                                    <select
+                                        value={newColType}
+                                        onChange={e => setNewColType(e.target.value as any)}
+                                        style={{ width: '25%' }}
+                                    >
+                                        <option value="text">Text</option>
+                                        <option value="date">Date</option>
+                                        <option value="status">Status</option>
+                                        <option value="boolean">Boolean</option>
+                                    </select>
+                                    <button onClick={() => handleAddColumn(m.slug)}>+</button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
@@ -135,14 +215,6 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                     onChange={(e) => handleChange('reactOptions', { ...config.reactOptions, filters: e.target.checked })}
                 />
                 <label>Filters</label>
-            </div>
-            <div className="checkbox-group">
-                <input
-                    type="checkbox"
-                    checked={config.reactOptions.detailsModal}
-                    onChange={(e) => handleChange('reactOptions', { ...config.reactOptions, detailsModal: e.target.checked })}
-                />
-                <label>Details Modal</label>
             </div>
         </div>
     );

@@ -15,7 +15,14 @@ export interface PluginConfig {
 export interface ModuleConfig {
   name: string; // "Logger", "Sync"
   slug: string; // "logger", "sync"
-  // potentially, we could override options per module later
+  columns: ColumnConfig[];
+}
+
+export interface ColumnConfig {
+  header: string;
+  accessorKey: string;
+  width?: number;
+  type?: 'text' | 'date' | 'status' | 'boolean';
 }
 
 export interface ReactOptions {

@@ -10,7 +10,15 @@ export const DEFAULT_CONFIG: PluginConfig = {
     authorName: 'Team Tangible',
     authorUri: 'https://teamtangible.com',
     modules: [
-        { name: 'Logger', slug: 'logs' }
+        {
+            name: 'Logger',
+            slug: 'logs',
+            columns: [
+                { header: 'ID', accessorKey: 'id', width: 60, type: 'text' },
+                { header: 'Date', accessorKey: 'date', width: 180, type: 'date' },
+                { header: 'Status', accessorKey: 'status', width: 100, type: 'status' }
+            ]
+        }
     ],
     reactOptions: {
         pagination: true,

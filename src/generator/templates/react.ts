@@ -47,45 +47,96 @@ export const {{Module}}Page = () => {
 };
 `;
 
-export const REACT_TABLE = `import { __ } from '@wordpress/i18n';
+export const REACT_TABLE = `import { CheckboxControl } from '@wordpress/components';
+import {
+    useReactTable,
+    getCoreRowModel,
+    flexRender,
+    createColumnHelper,
+} from '@tanstack/react-table';
 
-export const {{Module}}Table = ({ data, isLoading, onViewDetails }) => {
-  if (isLoading) {
-    return <div>{__('Loading...', '{{PLUGIN_SLUG}}')}</div>;
-  }
+export interface {{Module}}Data {
+  [key: string]: any;
+}
 
-  return (
-    <table className="wp-list-table widefat fixed striped">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item) => (
-          <tr key={item.id}>
-            <td>{item.id}</td>
-            <td>{item.name}</td>
-            <td>
-              <button 
-                className="button button-secondary"
-                onClick={() => onViewDetails(item)}
-              >
-                {__('View', '{{PLUGIN_SLUG}}')}
-              </button>
-            </td>
-          </tr>
-        ))}
-        {data.length === 0 && (
-          <tr>
-            <td colSpan={3}>{__('No items found.', '{{PLUGIN_SLUG}}')}</td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  );
+const columnHelper = createColumnHelper<{{Module}}Data>();
+
+export const {{Module}}Table = ({ data }) => {
+
+    // Define columns
+    const columns = [
+        columnHelper.display({
+            id: 'select',
+            header: ({ table }) => (
+                <CheckboxControl
+                    checked={table.getIsAllRowsSelected()}
+                    indeterminate={table.getIsSomeRowsSelected()}
+                    onChange={table.getToggleAllRowsSelectedHandler()}
+                    label=""
+                />
+            ),
+            cell: ({ row }) => (
+                <CheckboxControl
+                    checked={row.getIsSelected()}
+                    disabled={!row.getCanSelect()}
+                    onChange={row.getToggleSelectedHandler()}
+                    label=""
+                />
+            ),
+            size: 40,
+        }),
+        // {{TABLE_COLUMNS}}
+    ];
+
+    // Create table
+    const table = useReactTable({
+        data,
+        columns,
+        enableRowSelection: true,
+        getCoreRowModel: getCoreRowModel(),
+    });
+
+    return (
+        <div className="tgbl-table-container">
+            <table className="tgbl-table">
+                <thead className="tgbl-table__head">
+                    {table.getHeaderGroups().map(headerGroup => (
+                        <tr key={headerGroup.id} className="tgbl-table__row tgbl-table__row--head">
+                            {headerGroup.headers.map(header => (
+                                <th key={header.id} className="tgbl-table__cell tgbl-table__cell--head">
+                                    {header.isPlaceholder
+                                        ? null
+                                        : flexRender(
+                                            header.column.columnDef.header,
+                                            header.getContext()
+                                        )}
+                                </th>
+                            ))}
+                        </tr>
+                    ))}
+                </thead>
+                <tbody className="tgbl-table__body">
+                    {table.getRowModel().rows.length > 0 ? (
+                        table.getRowModel().rows.map(row => (
+                            <tr key={row.id} className="tgbl-table__row tgbl-table__row--body">
+                                {row.getVisibleCells().map(cell => (
+                                    <td key={cell.id} className="tgbl-table__cell tgbl-table__cell--body">
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))
+                    ) : (
+                        <tr className="tgbl-table__row tgbl-table__row--empty">
+                            <td colSpan={columns.length} className="tgbl-table__cell tgbl-table__cell--body">
+                                No data available
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
+    );
 };
 `;
 

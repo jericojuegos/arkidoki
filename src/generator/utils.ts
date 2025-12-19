@@ -18,6 +18,35 @@ export const replacePlaceholders = (template: string, config: PluginConfig, modu
         content = content.replace(/{{Module}}/g, module.name);
         content = content.replace(/{{module}}/g, module.slug);
         content = content.replace(/{{MODULE_CONST}}/g, module.slug.toUpperCase());
+
+        if (module.columns) {
+            const columnsDef = module.columns.map(col => {
+                let def = `
+        columnHelper.accessor('${col.accessorKey}', {
+            header: '${col.header}',
+            size: ${col.width || 150},`;
+
+                if (col.type === 'date') {
+                    def += `
+            cell: (info) => new Date(info.getValue()).toLocaleString(),`;
+                } else if (col.type === 'status') {
+                    def += `
+            cell: (info) => {
+                const status = info.getValue();
+                return (
+                    <span className={\`status-badge status-\${status}\`}>
+                        {status.toUpperCase()}
+                    </span>
+                );
+            },`;
+                }
+
+                def += `
+        }),`;
+                return def;
+            }).join('');
+            content = content.replace('// {{TABLE_COLUMNS}}', columnsDef);
+        }
     }
 
     return content;
