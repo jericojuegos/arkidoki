@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { PluginConfig } from '../types';
 
 interface Props {
@@ -7,6 +7,7 @@ interface Props {
 }
 
 export const InputSection: React.FC<Props> = ({ config, onChange }) => {
+    const [newModule, setNewModule] = useState('');
 
     const handleChange = (field: keyof PluginConfig, value: any) => {
         onChange({ ...config, [field]: value });
@@ -27,28 +28,29 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
         });
     };
 
-    const toggleModule = (name: string, slug: string) => {
-        const exists = config.modules.find(m => m.slug === slug);
-        if (exists) {
-            onChange({
-                ...config,
-                modules: config.modules.filter(m => m.slug !== slug)
-            });
-        } else {
-            onChange({
-                ...config,
-                modules: [...config.modules, { name, slug }]
-            });
+    const handleAddModule = () => {
+        if (!newModule.trim()) return;
+        const slug = newModule.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+        // Check for duplicates
+        if (config.modules.some(m => m.slug === slug)) {
+            // Ideally show an error, for now just ignore
+            return;
         }
+
+        onChange({
+            ...config,
+            modules: [...config.modules, { name: newModule, slug }]
+        });
+        setNewModule('');
     };
 
-    const popularModules = [
-        { name: 'Logger', slug: 'logs' },
-        { name: 'Sync', slug: 'sync' },
-        { name: 'Connections', slug: 'connections' },
-        { name: 'Users', slug: 'users' },
-        { name: 'Courses', slug: 'courses' }
-    ];
+    const handleRemoveModule = (slug: string) => {
+        onChange({
+            ...config,
+            modules: config.modules.filter(m => m.slug !== slug)
+        });
+    };
 
     return (
         <div className="card panel left-panel">
@@ -92,16 +94,27 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
             </div>
 
             <h3>Modules</h3>
+            <div className="form-group module-input-group">
+                <input
+                    type="text"
+                    value={newModule}
+                    onChange={(e) => setNewModule(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddModule()}
+                    placeholder="Add Module (e.g. Logger)"
+                />
+                <button onClick={handleAddModule} className="btn-add">Add</button>
+            </div>
+
             <div className="modules-list">
-                {popularModules.map(m => (
-                    <div key={m.slug} className="checkbox-group">
-                        <input
-                            type="checkbox"
-                            id={`mod-${m.slug}`}
-                            checked={!!config.modules.find(mod => mod.slug === m.slug)}
-                            onChange={() => toggleModule(m.name, m.slug)}
-                        />
-                        <label htmlFor={`mod-${m.slug}`}>{m.name}</label>
+                {config.modules.length === 0 && <p className="no-modules">No modules added.</p>}
+                {config.modules.map(m => (
+                    <div key={m.slug} className="module-item">
+                        <span>{m.name}</span>
+                        <button
+                            onClick={() => handleRemoveModule(m.slug)}
+                            className="btn-remove"
+                            title="Remove Module"
+                        >×</button>
                     </div>
                 ))}
             </div>
