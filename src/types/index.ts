@@ -9,6 +9,7 @@ export interface PluginConfig {
   authorUri: string;
   modules: ModuleConfig[];
   reactOptions: ReactOptions;
+  buildApproach: 'tangible' | 'standard'; // Added
   dependencies: string[];
 }
 

@@ -104,6 +104,18 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
             <h2>Plugin Generator</h2>
 
             <div className="form-group">
+                <label>Build Approach</label>
+                <select
+                    value={config.buildApproach}
+                    onChange={(e) => handleChange('buildApproach', e.target.value as any)}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}
+                >
+                    <option value="tangible">Tangible Framework</option>
+                    <option value="standard">Standard WordPress</option>
+                </select>
+            </div>
+
+            <div className="form-group">
                 <label>Project Name</label>
                 <input
                     type="text"

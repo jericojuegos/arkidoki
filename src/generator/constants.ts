@@ -28,5 +28,6 @@ export const DEFAULT_CONFIG: PluginConfig = {
         search: true,
         searchType: 'explicit'
     },
+    buildApproach: 'tangible', // Default
     dependencies: []
 };
