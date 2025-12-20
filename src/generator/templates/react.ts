@@ -8,40 +8,30 @@ if (container) {
 }
 `;
 
-export const REACT_PAGE = `import { useState, useEffect } from '@wordpress/element';
+export const REACT_PAGE = `import { useState, useEffect } from 'react';
 import { {{Module}}Table } from './{{Module}}Table';
-import { {{Module}}Filters } from './{{Module}}Filters';
-import { {{Module}}Pagination } from './{{Module}}Pagination';
-import { {{Module}}DetailsModal } from './{{Module}}DetailsModal';
+import { {{module}}Api } from './api';
+import type { {{Module}} } from './types';
 
 export const {{Module}}Page = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [{{module}}, set{{Module}}] = useState<{{Module}}[]>([]);
 
   useEffect(() => {
-    // Fetch data here
-    setLoading(false);
-  }, []);
+      const fetch{{Module}} = async () => {
+          try {
+              const response = await {{module}}Api.getAll();
+              set{{Module}}(response.data);
+          } catch (error) {
+              console.error('Error fetching {{module}}:', error);
+          }
+      };
 
-  const handleViewDetails = (item) => {
-    setSelectedItem(item);
-    setShowModal(true);
-  };
+      fetch{{Module}}();
+  }, []);
 
   return (
     <div className="{{PLUGIN_SLUG}}-{{module}}-page">
-      <h1>{{Module}} Management</h1>
-      <{{Module}}Filters />
-      <{{Module}}Table data={data} isLoading={loading} onViewDetails={handleViewDetails} />
-      <{{Module}}Pagination />
-      {showModal && (
-        <{{Module}}DetailsModal 
-          item={selectedItem} 
-          onClose={() => setShowModal(false)} 
-        />
-      )}
+      <{{Module}}Table {{module}}={{{module}}} />
     </div>
   );
 };
@@ -54,14 +44,18 @@ import {
     flexRender,
     createColumnHelper,
 } from '@tanstack/react-table';
+import type { {{Module}} } from './types';
 
-export interface {{Module}}Data {
-  [key: string]: any;
+
+interface {{Module}}TableProps {
+    {{module}}: {{Module}}[];
 }
 
-const columnHelper = createColumnHelper<{{Module}}Data>();
+const columnHelper = createColumnHelper<{{Module}}>();
 
-export const {{Module}}Table = ({ data }) => {
+export const {{Module}}Table = ({
+    {{module}},
+}: {{Module}}TableProps) => {
 
     // Define columns
     const columns = [
@@ -90,7 +84,7 @@ export const {{Module}}Table = ({ data }) => {
 
     // Create table
     const table = useReactTable({
-        data,
+        data: {{module}},
         columns,
         enableRowSelection: true,
         getCoreRowModel: getCoreRowModel(),
@@ -156,15 +150,63 @@ export const {{Module}}Filters = () => {
 `;
 
 export const REACT_PAGINATION = `import { Button } from '@wordpress/components';
+import type { ComponentProps } from "react";
 
-export const {{Module}}Pagination = () => {
-  return (
-    <div className="{{PLUGIN_SLUG}}-pagination">
-      <Button disabled>Previous</Button>
-      <span> Page 1 of 10 </span>
-      <Button>Next</Button>
-    </div>
-  );
+type WPButtonProps = ComponentProps<typeof Button>;
+
+export interface PaginationProps {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+}
+
+const NavButton = (props: WPButtonProps) => (
+    <Button size="small" variant="secondary" {...props} />
+);
+
+export const Pagination = ({
+    currentPage,
+    totalPages,
+    onPageChange,
+}: PaginationProps) => {
+    if (totalPages <= 1) return null;
+
+    const goTo = (page: number) => {
+        if (page < 1 || page > totalPages) return;
+        onPageChange(page);
+    };
+
+    return (
+        <nav className="tss-pagination" aria-label="Pagination">
+            <div className="pagination-controls">
+                <NavButton onClick={() => goTo(1)} disabled={currentPage === 1} className="tf-context-wp">
+                    First
+                </NavButton>
+
+                <NavButton onClick={() => goTo(currentPage - 1)} disabled={currentPage === 1}>
+                    Previous
+                </NavButton>
+
+                <span className="page-numbers">
+                    Page {currentPage} of {totalPages}
+                </span>
+
+                <NavButton
+                    onClick={() => goTo(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                >
+                    Next
+                </NavButton>
+
+                <NavButton
+                    onClick={() => goTo(totalPages)}
+                    disabled={currentPage === totalPages}
+                >
+                    Last
+                </NavButton>
+            </div>
+        </nav>
+    );
 };
 `;
 
