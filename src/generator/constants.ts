@@ -22,6 +22,7 @@ export const DEFAULT_CONFIG: PluginConfig = {
     ],
     reactOptions: {
         pagination: true,
+        paginationStyle: 'simple',
         filters: true,
         detailsModal: true,
         search: true,

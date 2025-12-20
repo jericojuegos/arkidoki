@@ -10,28 +10,43 @@ if (container) {
 
 export const REACT_PAGE = `import { useState, useEffect } from 'react';
 import { {{Module}}Table } from './{{Module}}Table';
+import { {{Module}}Pagination } from './{{Module}}Pagination';
 import { {{module}}Api } from './api';
 import type { {{Module}} } from './types';
 
 export const {{Module}}Page = () => {
   const [{{module}}, set{{Module}}] = useState<{{Module}}[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
       const fetch{{Module}} = async () => {
           try {
-              const response = await {{module}}Api.getAll();
+              const response = await {{module}}Api.getAll({ page: currentPage });
               set{{Module}}(response.data);
+              // Assuming response includes meta for pagination
+              if (response.meta) {
+                  setTotalPages(response.meta.last_page);
+                  setTotalItems(response.meta.total);
+              }
           } catch (error) {
               console.error('Error fetching {{module}}:', error);
           }
       };
 
       fetch{{Module}}();
-  }, []);
+  }, [currentPage]);
 
   return (
     <div className="{{PLUGIN_SLUG}}-{{module}}-page">
       <{{Module}}Table {{module}}={{{module}}} />
+      <{{Module}}Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={totalItems}
+      />
     </div>
   );
 };
@@ -149,12 +164,13 @@ export const {{Module}}Filters = () => {
 };
 `;
 
-export const REACT_PAGINATION = `import { Button } from '@wordpress/components';
+export const PAGINATION_TEMPLATES = {
+  simple: `import { Button } from "@wordpress/components";
 import type { ComponentProps } from "react";
 
 type WPButtonProps = ComponentProps<typeof Button>;
 
-export interface PaginationProps {
+export interface {{Module}}PaginationProps {
     currentPage: number;
     totalPages: number;
     onPageChange: (page: number) => void;
@@ -164,11 +180,11 @@ const NavButton = (props: WPButtonProps) => (
     <Button size="small" variant="secondary" {...props} />
 );
 
-export const Pagination = ({
+export const {{Module}}Pagination = ({
     currentPage,
     totalPages,
     onPageChange,
-}: PaginationProps) => {
+}: {{Module}}PaginationProps) => {
     if (totalPages <= 1) return null;
 
     const goTo = (page: number) => {
@@ -177,7 +193,7 @@ export const Pagination = ({
     };
 
     return (
-        <nav className="tss-pagination" aria-label="Pagination">
+        <nav className="{{PLUGIN_SLUG}}-pagination" aria-label="Pagination">
             <div className="pagination-controls">
                 <NavButton onClick={() => goTo(1)} disabled={currentPage === 1} className="tf-context-wp">
                     First
@@ -208,7 +224,115 @@ export const Pagination = ({
         </nav>
     );
 };
-`;
+`,
+  v2: `import React, { useState, useEffect } from 'react';
+
+interface {{Module}}PaginationProps {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+    totalItems: number;
+}
+
+export const {{Module}}Pagination = ({
+    currentPage,
+    totalPages,
+    onPageChange,
+    totalItems,
+}: {{Module}}PaginationProps) => {
+    const [inputPage, setInputPage] = useState(currentPage.toString());
+
+    // Update input when currentPage changes externally
+    useEffect(() => {
+        setInputPage(currentPage.toString());
+    }, [currentPage]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInputPage(e.target.value);
+    };
+
+    const handleInputBlur = () => {
+        let page = parseInt(inputPage, 10);
+        if (isNaN(page)) {
+            page = currentPage;
+        } else {
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+        }
+        setInputPage(page.toString());
+        if (page !== currentPage) {
+            onPageChange(page);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleInputBlur();
+        }
+    };
+
+    return (
+        <div className="tss-pagination-v2">
+            <span className="tss-pagination-v2__count">{totalItems} items</span>
+
+            <div className="tss-pagination-v2__controls">
+                <button
+                    type="button"
+                    className="tss-pagination-v2__button"
+                    onClick={() => onPageChange(1)}
+                    disabled={currentPage === 1}
+                    aria-label="First Page"
+                >
+                    <span className="tss-pagination-v2__button-text">«</span>
+                </button>
+
+                <button
+                    type="button"
+                    className="tss-pagination-v2__button"
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Previous Page"
+                >
+                    <span className="tss-pagination-v2__button-text">‹</span>
+                </button>
+
+                <input
+                    type="text"
+                    className="tss-pagination-v2__button tss-pagination-v2__button--input"
+                    value={inputPage}
+                    onChange={handleInputChange}
+                    onBlur={handleInputBlur}
+                    onKeyDown={handleKeyDown}
+                    aria-label="Current Page"
+                />
+
+                <span className="tss-pagination-v2__count">of {totalPages}</span>
+
+                <button
+                    type="button"
+                    className="tss-pagination-v2__button"
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next Page"
+                >
+                    <span className="tss-pagination-v2__button-text">›</span>
+                </button>
+
+                <button
+                    type="button"
+                    className="tss-pagination-v2__button"
+                    onClick={() => onPageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Last Page"
+                >
+                    <span className="tss-pagination-v2__button-text">»</span>
+                </button>
+            </div>
+        </div>
+    );
+};
+`
+};
 
 export const REACT_DETAILS_MODAL = `import { Modal } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';

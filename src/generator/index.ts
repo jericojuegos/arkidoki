@@ -6,7 +6,7 @@ import {
     REACT_PAGE,
     REACT_TABLE,
     REACT_FILTERS,
-    REACT_PAGINATION,
+    PAGINATION_TEMPLATES,
     REACT_DETAILS_MODAL
 } from './templates/react';
 import { TANGIBLE_CONFIG, ENQUEUE_SCRIPT_PHP } from './templates/misc';
@@ -81,7 +81,9 @@ export const generatePluginFiles = (config: PluginConfig): GeneratedFile[] => {
         addFile(`${module.name}Filters.tsx`, `${basePath}/${module.name}Filters.tsx`, replacePlaceholders(REACT_FILTERS, config, module), 'typescript');
 
         // Pagination
-        addFile(`${module.name}Pagination.tsx`, `${basePath}/${module.name}Pagination.tsx`, replacePlaceholders(REACT_PAGINATION, config, module), 'typescript');
+        const style = config.reactOptions.paginationStyle || 'simple';
+        const paginationTemplate = PAGINATION_TEMPLATES[style];
+        addFile(`${module.name}Pagination.tsx`, `${basePath}/${module.name}Pagination.tsx`, replacePlaceholders(paginationTemplate, config, module), 'typescript');
 
         // Details Modal
         addFile(`${module.name}DetailsModal.tsx`, `${basePath}/${module.name}DetailsModal.tsx`, replacePlaceholders(REACT_DETAILS_MODAL, config, module), 'typescript');

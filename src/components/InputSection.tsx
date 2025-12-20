@@ -208,6 +208,19 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                 />
                 <label>Pagination</label>
             </div>
+            {config.reactOptions.pagination && (
+                <div className="sub-options" style={{ marginLeft: '1.5rem', marginBottom: '0.5rem' }}>
+                    <label style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>Style:</label>
+                    <select
+                        value={config.reactOptions.paginationStyle}
+                        onChange={(e) => handleChange('reactOptions', { ...config.reactOptions, paginationStyle: e.target.value as any })}
+                        style={{ padding: '0.25rem', borderRadius: '3px', border: '1px solid var(--border-color)' }}
+                    >
+                        <option value="simple">Simple (Buttons)</option>
+                        <option value="v2">V2 (Input + Arrows)</option>
+                    </select>
+                </div>
+            )}
             <div className="checkbox-group">
                 <input
                     type="checkbox"

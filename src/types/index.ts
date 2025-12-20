@@ -27,6 +27,7 @@ export interface ColumnConfig {
 
 export interface ReactOptions {
   pagination: boolean;
+  paginationStyle: 'simple' | 'v2';
   filters: boolean;
   detailsModal: boolean;
   search: boolean;
