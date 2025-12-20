@@ -28,7 +28,7 @@ export interface ColumnConfig {
 
 export interface ReactOptions {
   pagination: boolean;
-  paginationStyle: 'simple' | 'v2';
+  paginationStyle: 'simple' | 'v2' | 'v3';
   filters: boolean;
   detailsModal: boolean;
   search: boolean;
@@ -39,5 +39,7 @@ export interface GeneratedFile {
   name: string;
   path: string;
   content: string;
-  language: 'php' | 'typescript' | 'javascript' | 'json';
+  language: 'php' | 'typescript' | 'javascript' | 'json' | 'scss';
+  styleContent?: string; // Optional SCSS content for TSX files
+  stylePath?: string; // Optional SCSS file path
 }

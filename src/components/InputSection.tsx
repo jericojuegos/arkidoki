@@ -230,6 +230,7 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                     >
                         <option value="simple">Simple (Buttons)</option>
                         <option value="v2">V2 (Input + Arrows)</option>
+                        <option value="v3">V3 (Numbered)</option>
                     </select>
                 </div>
             )}

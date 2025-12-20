@@ -165,5 +165,100 @@ export const {{Module}}Pagination = ({
         </div>
     );
 };
+`,
+    v3: `import React from 'react';
+
+export interface {{Module}}PaginationProps {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+}
+
+export const {{Module}}Pagination = ({
+    currentPage,
+    totalPages,
+    onPageChange,
+}: {{Module}}PaginationProps) => {
+    if (totalPages <= 1) return null;
+
+    // Helper to generate page numbers with ellipsis
+    const getPageNumbers = () => {
+        const delta = 2; // Number of pages to show around current page
+        const range = [];
+        const rangeWithDots = [];
+        let l;
+
+        range.push(1);
+
+        for (let i = currentPage - delta; i <= currentPage + delta; i++) {
+            if (i < totalPages && i > 1) {
+                range.push(i);
+            }
+        }
+
+        range.push(totalPages);
+
+        for (let i of range) {
+            if (l) {
+                if (i - l === 2) {
+                    rangeWithDots.push(l + 1);
+                } else if (i - l !== 1) {
+                    rangeWithDots.push('...');
+                }
+            }
+            rangeWithDots.push(i);
+            l = i;
+        }
+
+        return rangeWithDots;
+    };
+
+    const pages = getPageNumbers();
+
+    return (
+        <nav className="tss-pagination">
+            <div className="tss-pagination__controls">
+                <ul className="tss-pagination__list">
+                    <li className="tss-pagination__item">
+                        <button
+                            className="tss-pagination__button"
+                            onClick={() => onPageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        >
+                            &lt;
+                        </button>
+                    </li>
+
+                    {pages.map((page, index) => (
+                        <li key={index} className="tss-pagination__item">
+                            {page === '...' ? (
+                                <span className="tss-pagination__dots">...</span>
+                            ) : (
+                                <button
+                                    className={\`tss-pagination__button \${
+                                        currentPage === page ? 'tss-pagination__button--active' : ''
+                                    }\`}
+                                    onClick={() => onPageChange(page as number)}
+                                >
+                                    {page}
+                                </button>
+                            )}
+                        </li>
+                    ))}
+
+                    <li className="tss-pagination__item">
+                        <button
+                            className="tss-pagination__button"
+                            onClick={() => onPageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                        >
+                            &gt;
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    );
+};
 `
 };
