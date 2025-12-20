@@ -4,7 +4,7 @@ import { replacePlaceholders } from '../../utils';
 import { MAIN_PLUGIN_FILE, SETTINGS_PHP, TANGIBLE_CONFIG, ENQUEUE_SCRIPT_PHP } from './templates';
 import {
     REACT_ENTRY_INDEX,
-    REACT_PAGE,
+    buildPageTemplate,
     REACT_TABLE,
     REACT_FILTERS,
     PAGINATION_TEMPLATES,
@@ -76,7 +76,7 @@ export class TangibleStrategy implements GeneratorStrategy {
             const basePath = `/assets/src/${module.slug}`;
 
             addFile('index.tsx', `${basePath}/index.tsx`, replacePlaceholders(REACT_ENTRY_INDEX, config, module), 'typescript');
-            addFile(`${module.name}Page.tsx`, `${basePath}/${module.name}Page.tsx`, replacePlaceholders(REACT_PAGE, config, module), 'typescript');
+            addFile(`${module.name}Page.tsx`, `${basePath}/${module.name}Page.tsx`, buildPageTemplate(config, module), 'typescript');
 
             // Table with SCSS
             addFile(

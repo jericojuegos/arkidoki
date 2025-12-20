@@ -4,7 +4,7 @@ import { replacePlaceholders } from '../../utils';
 import { STANDARD_MAIN_PLUGIN } from './templates';
 import {
     REACT_ENTRY_INDEX,
-    REACT_PAGE,
+    buildPageTemplate,
     REACT_TABLE,
     REACT_FILTERS,
     PAGINATION_TEMPLATES,
@@ -32,7 +32,7 @@ export class StandardStrategy implements GeneratorStrategy {
             const basePath = `/assets/src/${module.slug}`;
 
             addFile('index.tsx', `${basePath}/index.tsx`, replacePlaceholders(REACT_ENTRY_INDEX, config, module), 'typescript');
-            addFile(`${module.name}Page.tsx`, `${basePath}/${module.name}Page.tsx`, replacePlaceholders(REACT_PAGE, config, module), 'typescript');
+            addFile(`${module.name}Page.tsx`, `${basePath}/${module.name}Page.tsx`, buildPageTemplate(config, module), 'typescript');
             addFile(`${module.name}Table.tsx`, `${basePath}/${module.name}Table.tsx`, replacePlaceholders(REACT_TABLE, config, module), 'typescript');
             addFile(`${module.name}Filters.tsx`, `${basePath}/${module.name}Filters.tsx`, replacePlaceholders(REACT_FILTERS, config, module), 'typescript');
 
