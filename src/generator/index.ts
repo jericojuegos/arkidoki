@@ -8,7 +8,7 @@ import {
     REACT_FILTERS,
     PAGINATION_TEMPLATES,
     REACT_DETAILS_MODAL
-} from './templates/react';
+} from './templates/react/index';
 import { TANGIBLE_CONFIG, ENQUEUE_SCRIPT_PHP } from './templates/misc';
 
 export const generatePluginFiles = (config: PluginConfig): GeneratedFile[] => {
