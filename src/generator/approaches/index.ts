@@ -1,5 +1,5 @@
-import { TangibleStrategy } from './tangible';
-import { StandardStrategy } from './standard';
+import { TangibleStrategy } from './tangible/index';
+import { StandardStrategy } from './standard/index';
 
 export const strategies = {
     tangible: new TangibleStrategy(),
