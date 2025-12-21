@@ -11,9 +11,6 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
   // 1. Imports
   builder.addImport(`import { useState, useEffect, useCallback } from 'react';`);
   builder.addImport(`import { {{Module}}Table } from './{{Module}}Table';`);
-  if (hasPagination) {
-    builder.addImport(`import { {{Module}}Pagination } from './{{Module}}Pagination';`);
-  }
   builder.addImport(`import { {{module}}Api } from './api';`);
   builder.addImport(`import type { {{Module}} } from './types';`);
 
