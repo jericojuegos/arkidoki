@@ -78,24 +78,12 @@ ${totalItemsLogic}
                 ${needsTotalItems ? 'totalItems={totalItems}' : ''}
                 onPageChange={onPageChange}` : `{{module}}={{{module}}}`;
 
-  const paginationComponent = hasPagination ? `
-            <{{Module}}Pagination 
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={onPageChange}
-                ${needsTotalItems ? 'totalItems={totalItems}' : ''}
-            />` : '';
-
-  // Note: We are using the Sibling Pagination approach as established.
-  // If the user wants to pass props to Table, they can modify the Table component.
-  // However, sticking to the standard "Page" layout:
-
+  // Note: Pagination component is now rendered inside the Table component.
   builder.setJSX(`    return (
         <div className="{{PLUGIN_SLUG}}-{{module}}-page">
             {/* TODO: Add Search and Filter */}
             {/* TODO: Add Per Page Selector */}
             <{{Module}}Table ${tableProps.trim()} />
-            ${paginationComponent}
             {/* TODO: Add Details Modal */}
         </div>
     );`);

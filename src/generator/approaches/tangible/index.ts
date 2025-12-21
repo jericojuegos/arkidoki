@@ -5,7 +5,7 @@ import { MAIN_PLUGIN_FILE, SETTINGS_PHP, TANGIBLE_CONFIG, ENQUEUE_SCRIPT_PHP } f
 import {
     REACT_ENTRY_INDEX,
     buildPageTemplate,
-    REACT_TABLE,
+    buildTableTemplate,
     REACT_FILTERS,
     PAGINATION_TEMPLATES,
     REACT_DETAILS_MODAL
@@ -82,7 +82,7 @@ export class TangibleStrategy implements GeneratorStrategy {
             addFile(
                 `${module.name}Table.tsx`,
                 `${basePath}/${module.name}Table.tsx`,
-                replacePlaceholders(REACT_TABLE, config, module),
+                buildTableTemplate(config, module),
                 'typescript',
                 replacePlaceholders(TABLE_SCSS, config, module),
                 `${basePath}/${module.name}Table.scss`

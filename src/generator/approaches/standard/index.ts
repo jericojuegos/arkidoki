@@ -5,7 +5,7 @@ import { STANDARD_MAIN_PLUGIN } from './templates';
 import {
     REACT_ENTRY_INDEX,
     buildPageTemplate,
-    REACT_TABLE,
+    buildTableTemplate,
     REACT_FILTERS,
     PAGINATION_TEMPLATES,
     REACT_DETAILS_MODAL
@@ -33,7 +33,7 @@ export class StandardStrategy implements GeneratorStrategy {
 
             addFile('index.tsx', `${basePath}/index.tsx`, replacePlaceholders(REACT_ENTRY_INDEX, config, module), 'typescript');
             addFile(`${module.name}Page.tsx`, `${basePath}/${module.name}Page.tsx`, buildPageTemplate(config, module), 'typescript');
-            addFile(`${module.name}Table.tsx`, `${basePath}/${module.name}Table.tsx`, replacePlaceholders(REACT_TABLE, config, module), 'typescript');
+            addFile(`${module.name}Table.tsx`, `${basePath}/${module.name}Table.tsx`, buildTableTemplate(config, module), 'typescript');
             addFile(`${module.name}Filters.tsx`, `${basePath}/${module.name}Filters.tsx`, replacePlaceholders(REACT_FILTERS, config, module), 'typescript');
 
             const style = config.reactOptions.paginationStyle || 'simple';
