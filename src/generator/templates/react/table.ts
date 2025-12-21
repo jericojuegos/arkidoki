@@ -18,7 +18,7 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
 } from '@tanstack/react-table';`);
     builder.addImport(`import type { {{Module}} } from './types';`);
     if (hasPagination) {
-        builder.addImport(`import { {{Module}}Pagination } from './{{Module}}Pagination';`);
+        builder.addImport(`import { Pagination } from '../components/Pagination';`);
     }
 
     // 2. Props Interface
@@ -82,7 +82,7 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
 
     // 4. JSX
     const paginationElement = hasPagination ? `
-            <{{Module}}Pagination 
+            <Pagination 
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={onPageChange}
