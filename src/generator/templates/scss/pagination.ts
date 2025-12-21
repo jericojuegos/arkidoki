@@ -1,45 +1,49 @@
 export const PAGINATION_SCSS_TEMPLATES = {
-    simple: `// {{PLUGIN_SLUG}}-pagination
+    simple: `// {{PLUGIN_SLUG}}-pagination 
 // BEM Styling for Simple Pagination
 
 .{{PLUGIN_SLUG}}-pagination {
     display: flex;
-    align-items: center;
     justify-content: flex-end;
-    padding: 1rem;
-    gap: 0.5rem;
-    background: #fff;
-    border-top: 1px solid #e2e4e7;
+    margin-top: 16px;
 
     &__controls {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 3px;
     }
 
-    &__page-info {
-        font-size: 0.875rem;
-        color: #757575;
-        margin: 0 0.5rem;
+    &__list {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        gap: 4px;
     }
-}
 
-.pagination-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
+    &__button,
+    &__nav {
+        min-width: 32px;
+        padding: 4px 8px;
+        cursor: pointer;
+    }
 
-.page-numbers {
-    font-size: 0.875rem;
-    color: #757575;
-    margin: 0 0.5rem;
+    &__button--active {
+        font-weight: 600;
+        pointer-events: none;
+    }
+
+    &__status {
+        font-size: 12px;
+        opacity: 0.7;
+        padding: 0 4px;
+    }
 }
 `,
-    v2: `// tss-pagination-v2
+    v2: `// {{PLUGIN_SLUG}}-pagination-v2
 // BEM Styling for V2 Pagination (Input + Arrows)
 
-.tss-pagination-v2 {
+.{{PLUGIN_SLUG}}-pagination-v2 {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -95,10 +99,10 @@ export const PAGINATION_SCSS_TEMPLATES = {
     }
 }
 `,
-    v3: `// tss-pagination-v3
+    v3: `// {{PLUGIN_SLUG}}-pagination-v3
 // BEM Styling for V3 Pagination (Numbered)
 
-.tss-pagination {
+.{{PLUGIN_SLUG}}-pagination {
     display: flex;
     justify-content: center;
     margin-top: 16px;

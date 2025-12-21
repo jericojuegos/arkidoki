@@ -32,7 +32,7 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
   if (hasPagination) {
     const totalItemsLogic = needsTotalItems ? `            setTotalItems(response.total || 0);` : '';
 
-    builder.addMethod(`    // Fetch logs function with page parameter
+    builder.addMethod(`    // Fetch {{module}} function with page parameter
     const fetch{{Module}} = useCallback(async (page: number = 1) => {
         try {
             const response = await {{module}}Api.getAll({ page });
@@ -44,7 +44,7 @@ ${totalItemsLogic}
         }
     }, []);`);
 
-    builder.addEffect(`    // Fetch logs when currentPage changes
+    builder.addEffect(`    // Fetch {{module}} when currentPage changes
     useEffect(() => {
         fetch{{Module}}(currentPage);
     }, [currentPage, fetch{{Module}}]);`);
@@ -54,7 +54,7 @@ ${totalItemsLogic}
     };`);
 
   } else {
-    builder.addMethod(`    // Fetch all logs (no pagination)
+    builder.addMethod(`    // Fetch all {{module}} (no pagination)
     const fetch{{Module}} = useCallback(async () => {
         try {
             const response = await {{module}}Api.getAll();
@@ -64,7 +64,7 @@ ${totalItemsLogic}
         }
     }, []);`);
 
-    builder.addEffect(`    // Fetch logs once on mount
+    builder.addEffect(`    // Fetch {{module}} once on mount
     useEffect(() => {
         fetch{{Module}}();
     }, [fetch{{Module}}]);`);

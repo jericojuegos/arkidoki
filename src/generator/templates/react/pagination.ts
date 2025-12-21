@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 
 type WPButtonProps = ComponentProps<typeof Button>;
 
-export interface {{Module}}PaginationProps {
+export interface PaginationProps {
     currentPage: number;
     totalPages: number;
     onPageChange: (page: number) => void;
@@ -14,11 +14,11 @@ const NavButton = (props: WPButtonProps) => (
     <Button size="small" variant="secondary" {...props} />
 );
 
-export const {{Module}}Pagination = ({
+export const Pagination = ({
     currentPage,
     totalPages,
     onPageChange,
-}: {{Module}}PaginationProps) => {
+}: PaginationProps) => {
     if (totalPages <= 1) return null;
 
     const goTo = (page: number) => {
@@ -27,8 +27,8 @@ export const {{Module}}Pagination = ({
     };
 
     return (
-        <nav className="{{PLUGIN_SLUG}}-pagination" aria-label="Pagination">
-            <div className="pagination-controls">
+        <nav className="sitesync-pagination" aria-label="Pagination">
+            <div className="sitesync-pagination__controls">
                 <NavButton onClick={() => goTo(1)} disabled={currentPage === 1} className="tf-context-wp">
                     First
                 </NavButton>
@@ -37,7 +37,7 @@ export const {{Module}}Pagination = ({
                     Previous
                 </NavButton>
 
-                <span className="page-numbers">
+                <span className="sitesync-pagination__status">
                     Page {currentPage} of {totalPages}
                 </span>
 
