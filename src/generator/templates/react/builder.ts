@@ -10,9 +10,10 @@ export class CodeBuilder {
         return this;
     }
 
-    addState(name: string, initialValue: string | number | boolean, type?: string) {
+    addState(name: string, initialValue: string | number | boolean, type?: string, setterName?: string) {
         const typePart = type ? `<${type}>` : '';
-        this.state.push(`    const [${name}, set${name.charAt(0).toUpperCase() + name.slice(1)}] = useState${typePart}(${initialValue});`);
+        const setter = setterName || `set${name.charAt(0).toUpperCase() + name.slice(1)}`;
+        this.state.push(`    const [${name}, ${setter}] = useState${typePart}(${initialValue});`);
         return this;
     }
 

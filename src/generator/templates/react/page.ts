@@ -18,7 +18,7 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
   builder.addImport(`import type { {{Module}} } from './types';`);
 
   // 2. State
-  builder.addState('{{module}}', '[]', `{{Module}}[]`);
+  builder.addState('{{module}}', '[]', `{{Module}}[]`, 'set{{Module}}');
 
   if (hasPagination) {
     builder.addState('currentPage', 1);
