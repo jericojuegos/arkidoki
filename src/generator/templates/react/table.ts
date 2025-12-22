@@ -89,14 +89,18 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
                 ${needsTotalItems ? 'totalItems={totalItems}' : ''}
             />` : '';
 
+    const tableOptions = config.reactOptions.tableOptions || { responsive: true, styleModifiers: [] };
+    const modifiers = (tableOptions.styleModifiers || []).map(m => ` {{PLUGIN_SLUG}}-table--${m}`).join('');
+    const tableClass = `{{PLUGIN_SLUG}}-table${modifiers}`;
+
     builder.setJSX(`    return (
-        <div className="tgbl-table-container">
-            <table className="tgbl-table">
-                <thead className="tgbl-table__head">
+        <div className="{{PLUGIN_SLUG}}-table-container">
+            <table className="${tableClass}">
+                <thead className="{{PLUGIN_SLUG}}-table__head">
                     {table.getHeaderGroups().map(headerGroup => (
-                        <tr key={headerGroup.id} className="tgbl-table__row tgbl-table__row--head">
+                        <tr key={headerGroup.id} className="{{PLUGIN_SLUG}}-table__row {{PLUGIN_SLUG}}-table__row--head">
                             {headerGroup.headers.map(header => (
-                                <th key={header.id} className="tgbl-table__cell tgbl-table__cell--head">
+                                <th key={header.id} className="{{PLUGIN_SLUG}}-table__cell {{PLUGIN_SLUG}}-table__cell--head">
                                     {header.isPlaceholder
                                         ? null
                                         : flexRender(
@@ -108,20 +112,20 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
                         </tr>
                     ))}
                 </thead>
-                <tbody className="tgbl-table__body">
+                <tbody className="{{PLUGIN_SLUG}}-table__body">
                     {table.getRowModel().rows.length > 0 ? (
                         table.getRowModel().rows.map(row => (
-                            <tr key={row.id} className="tgbl-table__row tgbl-table__row--body">
+                            <tr key={row.id} className="{{PLUGIN_SLUG}}-table__row {{PLUGIN_SLUG}}-table__row--body">
                                 {row.getVisibleCells().map(cell => (
-                                    <td key={cell.id} className="tgbl-table__cell tgbl-table__cell--body">
+                                    <td key={cell.id} className="{{PLUGIN_SLUG}}-table__cell {{PLUGIN_SLUG}}-table__cell--body">
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </td>
                                 ))}
                             </tr>
                         ))
                     ) : (
-                        <tr className="tgbl-table__row tgbl-table__row--empty">
-                            <td colSpan={columns.length} className="tgbl-table__cell tgbl-table__cell--body">
+                        <tr className="{{PLUGIN_SLUG}}-table__row {{PLUGIN_SLUG}}-table__row--empty">
+                            <td colSpan={columns.length} className="{{PLUGIN_SLUG}}-table__cell {{PLUGIN_SLUG}}-table__cell--body">
                                 No data available
                             </td>
                         </tr>

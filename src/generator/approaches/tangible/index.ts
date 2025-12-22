@@ -10,7 +10,7 @@ import {
     PAGINATION_TEMPLATES,
     REACT_DETAILS_MODAL
 } from '../../templates/react/index';
-import { PAGINATION_SCSS_TEMPLATES, TABLE_SCSS } from '../../templates/scss/index';
+import { PAGINATION_SCSS_TEMPLATES, buildTableScss } from '../../templates/scss/index';
 
 export class TangibleStrategy implements GeneratorStrategy {
     generate(config: PluginConfig): GeneratedFile[] {
@@ -84,7 +84,7 @@ export class TangibleStrategy implements GeneratorStrategy {
                 `${basePath}/${module.name}Table.tsx`,
                 buildTableTemplate(config, module),
                 'typescript',
-                replacePlaceholders(TABLE_SCSS, config, module),
+                buildTableScss(config, module),
                 `${basePath}/${module.name}Table.scss`
             );
 

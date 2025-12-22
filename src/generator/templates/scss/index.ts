@@ -1,2 +1,2 @@
 export * from './pagination';
-export * from './table';
+export { buildTableScss } from './table';

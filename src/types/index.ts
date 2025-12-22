@@ -33,6 +33,12 @@ export interface ReactOptions {
   detailsModal: boolean;
   search: boolean;
   searchType: 'explicit' | 'live';
+  tableOptions: TableOptions; // Added
+}
+
+export interface TableOptions {
+  responsive: boolean;
+  styleModifiers: string[]; // 'striped', 'bordered', 'compact', 'dark'
 }
 
 export interface GeneratedFile {

@@ -10,14 +10,15 @@ import {
     PAGINATION_TEMPLATES,
     REACT_DETAILS_MODAL
 } from '../../templates/react/index';
+import { buildTableScss } from '../../templates/scss/index';
 
 export class StandardStrategy implements GeneratorStrategy {
     generate(config: PluginConfig): GeneratedFile[] {
         const files: GeneratedFile[] = [];
 
         // Helper to push files
-        const addFile = (name: string, path: string, content: string, language: 'php' | 'typescript' | 'javascript' | 'json' = 'php') => {
-            files.push({ name, path, content, language });
+        const addFile = (name: string, path: string, content: string, language: 'php' | 'typescript' | 'javascript' | 'json' = 'php', styleContent?: string, stylePath?: string) => {
+            files.push({ name, path, content, language, styleContent, stylePath });
         };
 
         // 1. Main Plugin File
@@ -33,7 +34,8 @@ export class StandardStrategy implements GeneratorStrategy {
 
             addFile('index.tsx', `${basePath}/index.tsx`, replacePlaceholders(REACT_ENTRY_INDEX, config, module), 'typescript');
             addFile(`${module.name}Page.tsx`, `${basePath}/${module.name}Page.tsx`, buildPageTemplate(config, module), 'typescript');
-            addFile(`${module.name}Table.tsx`, `${basePath}/${module.name}Table.tsx`, buildTableTemplate(config, module), 'typescript');
+            addFile(`${module.name}Table.tsx`, `${basePath}/${module.name}Table.tsx`, buildTableTemplate(config, module), 'typescript',
+                buildTableScss(config, module), `${basePath}/${module.name}Table.scss`);
             addFile(`${module.name}Filters.tsx`, `${basePath}/${module.name}Filters.tsx`, replacePlaceholders(REACT_FILTERS, config, module), 'typescript');
 
             const style = config.reactOptions.paginationStyle || 'simple';

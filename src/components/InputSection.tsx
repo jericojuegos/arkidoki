@@ -242,6 +242,51 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                 />
                 <label>Filters</label>
             </div>
+
+            {/* Table Options */}
+            <h3>Table Options</h3>
+            <div className="checkbox-group">
+                <input
+                    type="checkbox"
+                    checked={config.reactOptions.tableOptions?.responsive ?? true}
+                    onChange={(e) => handleChange('reactOptions', {
+                        ...config.reactOptions,
+                        tableOptions: {
+                            ...(config.reactOptions.tableOptions || { styleModifiers: [] }),
+                            responsive: e.target.checked
+                        }
+                    })}
+                />
+                <label>Responsive</label>
+            </div>
+
+            <div className="form-group">
+                <label>Style Modifiers</label>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    {['striped', 'bordered', 'compact', 'dark'].map(style => (
+                        <label key={style} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.9rem' }}>
+                            <input
+                                type="checkbox"
+                                checked={config.reactOptions.tableOptions?.styleModifiers?.includes(style) || false}
+                                onChange={(e) => {
+                                    const current = config.reactOptions.tableOptions?.styleModifiers || [];
+                                    const newModifiers = e.target.checked
+                                        ? [...current, style]
+                                        : current.filter(s => s !== style);
+                                    handleChange('reactOptions', {
+                                        ...config.reactOptions,
+                                        tableOptions: {
+                                            ...(config.reactOptions.tableOptions || { responsive: true }),
+                                            styleModifiers: newModifiers
+                                        }
+                                    });
+                                }}
+                            />
+                            {style.charAt(0).toUpperCase() + style.slice(1)}
+                        </label>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };
