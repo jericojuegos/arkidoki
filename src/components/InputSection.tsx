@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { PluginConfig, ColumnConfig } from '../types';
+import { FeatureInfoIcon } from './FeatureInfoIcon';
 
 interface Props {
     config: PluginConfig;
@@ -219,6 +220,7 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                     onChange={(e) => handleChange('reactOptions', { ...config.reactOptions, pagination: e.target.checked })}
                 />
                 <label>Pagination</label>
+                <FeatureInfoIcon featureId="pagination" config={config} />
             </div>
             {config.reactOptions.pagination && (
                 <div className="sub-options" style={{ marginLeft: '1.5rem', marginBottom: '0.5rem' }}>
@@ -244,7 +246,7 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
             </div>
 
             {/* Table Options */}
-            <h3>Table Options</h3>
+            <h3>Table Options <FeatureInfoIcon featureId="table-options" config={config} /></h3>
             <div className="checkbox-group">
                 <input
                     type="checkbox"
@@ -289,7 +291,7 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
             </div>
 
             {/* Loading States */}
-            <h3>Loading States</h3>
+            <h3>Loading States <FeatureInfoIcon featureId="loading-states" config={config} /></h3>
             <div className="form-group">
                 <label>Initial Loading</label>
                 <select

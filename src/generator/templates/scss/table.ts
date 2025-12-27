@@ -1,6 +1,6 @@
 import type { PluginConfig, ModuleConfig } from '../../../types';
 
-export const buildTableScss = (config: PluginConfig, module: ModuleConfig): string => {
+export const buildTableScss = (config: PluginConfig, _module: ModuleConfig): string => {
     const tableOptions = config.reactOptions.tableOptions || { responsive: true, styleModifiers: [] };
     const styles = tableOptions.styleModifiers || [];
     const slug = config.projectSlug;
