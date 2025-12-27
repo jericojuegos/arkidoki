@@ -26,7 +26,17 @@ export const DEFAULT_CONFIG: PluginConfig = {
         filters: true,
         detailsModal: true,
         search: true,
-        searchType: 'explicit'
+        searchType: 'explicit',
+        tableOptions: {
+            responsive: true,
+            styleModifiers: []
+        },
+        loadingOptions: {
+            initial: 'none',
+            refreshOverlay: false,
+            buttonLoading: false,
+            emptyState: 'simple'
+        }
     },
     buildApproach: 'tangible', // Default
     dependencies: []

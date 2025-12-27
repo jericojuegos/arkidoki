@@ -287,6 +287,75 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                     ))}
                 </div>
             </div>
+
+            {/* Loading States */}
+            <h3>Loading States</h3>
+            <div className="form-group">
+                <label>Initial Loading</label>
+                <select
+                    value={config.reactOptions.loadingOptions?.initial || 'none'}
+                    onChange={(e) => handleChange('reactOptions', {
+                        ...config.reactOptions,
+                        loadingOptions: {
+                            ...(config.reactOptions.loadingOptions || { refreshOverlay: false, buttonLoading: false, emptyState: 'simple' }),
+                            initial: e.target.value as any
+                        }
+                    })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}
+                >
+                    <option value="none">None</option>
+                    <option value="spinner">Spinner</option>
+                    <option value="skeleton">Skeleton</option>
+                </select>
+            </div>
+
+            <div className="checkbox-group">
+                <input
+                    type="checkbox"
+                    checked={config.reactOptions.loadingOptions?.refreshOverlay ?? false}
+                    onChange={(e) => handleChange('reactOptions', {
+                        ...config.reactOptions,
+                        loadingOptions: {
+                            ...(config.reactOptions.loadingOptions || { initial: 'none', buttonLoading: false, emptyState: 'simple' }),
+                            refreshOverlay: e.target.checked
+                        }
+                    })}
+                />
+                <label>Refresh Overlay</label>
+            </div>
+
+            <div className="checkbox-group">
+                <input
+                    type="checkbox"
+                    checked={config.reactOptions.loadingOptions?.buttonLoading ?? false}
+                    onChange={(e) => handleChange('reactOptions', {
+                        ...config.reactOptions,
+                        loadingOptions: {
+                            ...(config.reactOptions.loadingOptions || { initial: 'none', refreshOverlay: false, emptyState: 'simple' }),
+                            buttonLoading: e.target.checked
+                        }
+                    })}
+                />
+                <label>Button Loading</label>
+            </div>
+
+            <div className="form-group">
+                <label>Empty State Style</label>
+                <select
+                    value={config.reactOptions.loadingOptions?.emptyState || 'simple'}
+                    onChange={(e) => handleChange('reactOptions', {
+                        ...config.reactOptions,
+                        loadingOptions: {
+                            ...(config.reactOptions.loadingOptions || { initial: 'none', refreshOverlay: false, buttonLoading: false }),
+                            emptyState: e.target.value as any
+                        }
+                    })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}
+                >
+                    <option value="simple">Simple Text</option>
+                    <option value="illustration">Illustration</option>
+                </select>
+            </div>
         </div>
     );
 };

@@ -16,6 +16,7 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
 
   // 2. State
   builder.addState('{{module}}', '[]', `{{Module}}[]`, 'set{{Module}}');
+  builder.addState('isLoading', 'false', 'boolean');
 
   if (hasPagination) {
     builder.addState('currentPage', 1);
@@ -31,6 +32,7 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
 
     builder.addMethod(`    // Fetch {{module}} function with page parameter
     const fetch{{Module}} = useCallback(async (page: number = 1) => {
+        setIsLoading(true);
         try {
             const response = await {{module}}Api.getAll({ page });
             set{{Module}}(response.data || []);
@@ -38,6 +40,8 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
 ${totalItemsLogic}
         } catch (error) {
             console.error('Error fetching {{module}}:', error);
+        } finally {
+            setIsLoading(false);
         }
     }, []);`);
 
@@ -53,11 +57,14 @@ ${totalItemsLogic}
   } else {
     builder.addMethod(`    // Fetch all {{module}} (no pagination)
     const fetch{{Module}} = useCallback(async () => {
+        setIsLoading(true);
         try {
             const response = await {{module}}Api.getAll();
             set{{Module}}(response.data || []);
         } catch (error) {
             console.error('Error fetching {{module}}:', error);
+        } finally {
+            setIsLoading(false);
         }
     }, []);`);
 
@@ -70,10 +77,11 @@ ${totalItemsLogic}
   // 4. JSX
   const tableProps = hasPagination ? `
                 {{module}}={{{module}}}
+                isLoading={isLoading}
                 currentPage={currentPage}
                 totalPages={totalPages}
                 ${needsTotalItems ? 'totalItems={totalItems}' : ''}
-                onPageChange={onPageChange}` : `{{module}}={{{module}}}`;
+                onPageChange={onPageChange}` : `{{module}}={{{module}}} isLoading={isLoading}`;
 
   // Note: Pagination component is now rendered inside the Table component.
   builder.setJSX(`    return (

@@ -33,12 +33,20 @@ export interface ReactOptions {
   detailsModal: boolean;
   search: boolean;
   searchType: 'explicit' | 'live';
-  tableOptions: TableOptions; // Added
+  tableOptions: TableOptions;
+  loadingOptions: LoadingOptions; // Added
 }
 
 export interface TableOptions {
   responsive: boolean;
   styleModifiers: string[]; // 'striped', 'bordered', 'compact', 'dark'
+}
+
+export interface LoadingOptions {
+  initial: 'skeleton' | 'spinner' | 'none';
+  refreshOverlay: boolean;
+  buttonLoading: boolean;
+  emptyState: 'simple' | 'illustration';
 }
 
 export interface GeneratedFile {

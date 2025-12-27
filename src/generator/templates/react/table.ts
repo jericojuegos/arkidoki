@@ -28,57 +28,15 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
     onPageChange: (page: number) => void;
     ${needsTotalItems ? 'totalItems: number;' : ''}` : '';
 
-    // 3. Component Definition
     const propsDestructuring = hasPagination ? `
     currentPage,
     totalPages,
     onPageChange,
     ${needsTotalItems ? 'totalItems,' : ''}` : '';
 
-    // We build the body inside the component manually here for the table logic
-    // because CodeBuilder is a bit simple for this complex component structure.
-    // We will just return the full component string via build() but constructed carefully.
-
-    // Actually, CodeBuilder.build() wraps content in a component. 
-    // But REACT_TABLE is complex. Let's just use the builder for imports and simple setJSX?
-    // OR we put the whole complex logic into setJSX or addMethod?
-    // The previous pattern was: imports -> state -> methods -> effects -> jsx.
-    // Here we have "columns" definition, "table" hook.
-
-    // Let's use `addMethod` to define 'columns' and 'table' as they are inside the component.
-
-    builder.addMethod(`    // Define columns
-    const columns = [
-        columnHelper.display({
-            id: 'select',
-            header: ({ table }) => (
-                <CheckboxControl
-                    checked={table.getIsAllRowsSelected()}
-                    indeterminate={table.getIsSomeRowsSelected()}
-                    onChange={table.getToggleAllRowsSelectedHandler()}
-                    label=""
-                />
-            ),
-            cell: ({ row }) => (
-                <CheckboxControl
-                    checked={row.getIsSelected()}
-                    disabled={!row.getCanSelect()}
-                    onChange={row.getToggleSelectedHandler()}
-                    label=""
-                />
-            ),
-            size: 40,
-        }),
-        // {{TABLE_COLUMNS}}
-    ];`);
-
-    builder.addMethod(`    // Create table
-    const table = useReactTable({
-        data: {{module}},
-        columns,
-        enableRowSelection: true,
-        getCoreRowModel: getCoreRowModel(),
-    });`);
+    // Loading & Empty Config
+    const loadingOptions = config.reactOptions.loadingOptions || { initial: 'none', refreshOverlay: false, buttonLoading: false, emptyState: 'simple' };
+    const { initial, refreshOverlay, emptyState } = loadingOptions;
 
     // 4. JSX
     const paginationElement = hasPagination ? `
@@ -91,10 +49,69 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
 
     const tableOptions = config.reactOptions.tableOptions || { responsive: true, styleModifiers: [] };
     const modifiers = (tableOptions.styleModifiers || []).map(m => ` {{PLUGIN_SLUG}}-table--${m}`).join('');
-    const tableClass = `{{PLUGIN_SLUG}}-table${modifiers}`;
+    const tableClass = `{{PLUGIN_SLUG}}-table${modifiers}`; // Restored
 
-    builder.setJSX(`    return (
-        <div className="{{PLUGIN_SLUG}}-table-container">
+    // Build Loading UI
+
+    // Build Loading UI
+    let loadingLogic = '';
+
+    // Initial Loading (Skeleton / Spinner)
+    if (initial === 'skeleton') {
+        loadingLogic = `
+        if (isLoading && {{module}}.length === 0) {
+            return (
+                 <div className="{{PLUGIN_SLUG}}-table-container">
+                    <table className="${tableClass}">
+                        <thead className="{{PLUGIN_SLUG}}-table__head">
+                            <tr className="{{PLUGIN_SLUG}}-table__row {{PLUGIN_SLUG}}-table__row--head">
+                                {columns.map((col, i) => (
+                                    <th key={i} className="{{PLUGIN_SLUG}}-table__cell {{PLUGIN_SLUG}}-table__cell--head">
+                                        <div className="skeleton-box" style={{ width: '80px', height: '16px' }}></div>
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="{{PLUGIN_SLUG}}-table__body">
+                            {[...Array(5)].map((_, i) => (
+                                <tr key={i} className="{{PLUGIN_SLUG}}-table__row {{PLUGIN_SLUG}}-table__row--body">
+                                    {columns.map((col, j) => (
+                                        <td key={j} className="{{PLUGIN_SLUG}}-table__cell {{PLUGIN_SLUG}}-table__cell--body">
+                                            <div className="skeleton-box" style={{ width: '100%', height: '16px' }}></div>
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                 </div>
+            );
+        }`;
+    } else if (initial === 'spinner') {
+        loadingLogic = `
+        if (isLoading && {{module}}.length === 0) {
+           return <div className="loading-spinner">Loading...</div>; 
+        }`;
+    }
+
+    // Refresh Overlay
+    const overlayElement = refreshOverlay ? `
+            {isLoading && {{module}}.length > 0 && (
+                <div className="loading-overlay">
+                    <div className="spinner-small"></div>
+                </div>
+            )}` : '';
+
+    // Empty State
+    const emptyStateContent = emptyState === 'illustration'
+        ? `<div className="empty-state-illustration">Requires illustration asset</div><div>No {{module}} found</div>`
+        : `No data available`;
+
+    builder.setJSX(`${loadingLogic}
+
+    return (
+        <div className="{{PLUGIN_SLUG}}-table-container" style={{ position: 'relative' }}>
+            ${overlayElement}
             <table className="${tableClass}">
                 <thead className="{{PLUGIN_SLUG}}-table__head">
                     {table.getHeaderGroups().map(headerGroup => (
@@ -126,7 +143,7 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
                     ) : (
                         <tr className="{{PLUGIN_SLUG}}-table__row {{PLUGIN_SLUG}}-table__row--empty">
                             <td colSpan={columns.length} className="{{PLUGIN_SLUG}}-table__cell {{PLUGIN_SLUG}}-table__cell--body">
-                                No data available
+                                ${emptyStateContent}
                             </td>
                         </tr>
                     )}
@@ -136,9 +153,7 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
         </div>
     );`);
 
-    // Custom build because we need to inject props into the main function signature
-    // The standard builder.build() expects no props: `const Component = () => {`.
-    // usage: const {{Module}}Table = ({ {{module}}, ... }) => {
+    // ... (rest of the file construction)
 
     const importsList = Array.from((builder as any).imports).join('\n');
     const methodsList = (builder as any).methods.join('\n\n');
@@ -148,13 +163,15 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
 ${importsList}
 
 interface {{Module}}TableProps {
-    {{module}}: {{Module}}[];${paginationProps}
+    {{module}}: {{Module}}[];
+    isLoading: boolean;${paginationProps}
 }
 
 const columnHelper = createColumnHelper<{{Module}}>();
 
 export const {{Module}}Table = ({
-    {{module}},${propsDestructuring}
+    {{module}},
+    isLoading,${propsDestructuring}
 }: {{Module}}TableProps) => {
 
 ${methodsList}
