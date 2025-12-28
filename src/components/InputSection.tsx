@@ -102,7 +102,7 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
 
     return (
         <div className="card panel left-panel">
-            <h2>Plugin Generator</h2>
+            <h2>Arkidoki</h2>
 
             <div className="form-group">
                 <label>Build Approach</label>

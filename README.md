@@ -1,4 +1,4 @@
-# Plugin Generator
+# Arkidoki
 
 A React application to brainstorm and scaffold WordPress plugins.
 

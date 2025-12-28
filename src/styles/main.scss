@@ -1,3 +1,5 @@
+@use './components/feature-doc-modal.scss';
+
 :root {
   --primary-color: #0f172a;
   --secondary-color: #334155;
@@ -11,7 +13,7 @@
   --hover-bg: #f8fafc;
 }
 
-@import './components/feature-doc-modal.scss';
+
 
 body {
   margin: 0;
