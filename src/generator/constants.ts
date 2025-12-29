@@ -36,7 +36,8 @@ export const DEFAULT_CONFIG: PluginConfig = {
             refreshOverlay: false,
             buttonLoading: false,
             emptyState: 'simple'
-        }
+        },
+        dataFetching: 'none'
     },
     buildApproach: 'tangible', // Default
     dependencies: [],

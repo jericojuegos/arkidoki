@@ -216,6 +216,18 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
             <RuntimeStrategy config={config} onChange={onChange} />
 
             <h3>React Options</h3>
+            <div className="form-group">
+                <label>Data Fetching Strategy</label>
+                <select
+                    value={config.reactOptions.dataFetching || 'none'}
+                    onChange={(e) => handleChange('reactOptions', { ...config.reactOptions, dataFetching: e.target.value as any })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}
+                >
+                    <option value="none">Standard (Props & State)</option>
+                    <option value="react-query">TanStack React Query</option>
+                </select>
+            </div>
+
             <div className="checkbox-group">
                 <input
                     type="checkbox"

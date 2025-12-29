@@ -10,6 +10,10 @@ import {
     PAGINATION_TEMPLATES,
     REACT_DETAILS_MODAL
 } from '../../templates/react/index';
+// Assuming these exports exist in react/index based on previous steps, if not I might need to export them.
+// I need to ensure they are exported from '../../templates/react/index' first.
+import { QUERY_CLIENT } from '../../templates/react/query-client';
+import { USE_QUERY_HOOK } from '../../templates/react/use-query';
 import { PAGINATION_SCSS_TEMPLATES, buildTableScss } from '../../templates/scss/index';
 
 export class TangibleStrategy implements GeneratorStrategy {
@@ -27,6 +31,8 @@ export class TangibleStrategy implements GeneratorStrategy {
         ) => {
             files.push({ name, path, content, language, styleContent, stylePath });
         };
+
+        const useReactQuery = config.reactOptions.dataFetching === 'react-query';
 
         // 1. Main Plugin File
         addFile(
@@ -71,11 +77,32 @@ export class TangibleStrategy implements GeneratorStrategy {
             'javascript'
         );
 
+        // 4.1 Query Client (Shared)
+        if (useReactQuery) {
+            addFile(
+                'queryClient.ts',
+                '/assets/src/queryClient.ts',
+                QUERY_CLIENT,
+                'typescript'
+            );
+        }
+
         // 5. Module Files (React + SCSS)
         config.modules.forEach(module => {
             const basePath = `/assets/src/${module.slug}`;
 
             addFile('index.tsx', `${basePath}/index.tsx`, buildReactEntryTemplate(config, module), 'typescript');
+
+            // React Query Hook
+            if (useReactQuery) {
+                addFile(
+                    `use${module.name}Query.ts`,
+                    `${basePath}/use${module.name}Query.ts`,
+                    replacePlaceholders(USE_QUERY_HOOK, config, module),
+                    'typescript'
+                );
+            }
+
             addFile(`${module.name}Page.tsx`, `${basePath}/${module.name}Page.tsx`, buildPageTemplate(config, module), 'typescript');
 
             // Table with SCSS

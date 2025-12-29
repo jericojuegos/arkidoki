@@ -5,35 +5,61 @@ export const buildReactEntryTemplate = (config: PluginConfig, module: ModuleConf
   let imports = '';
   let renderLogic = '';
 
+  // Config Flags
   const isWp = config.runtime.react === 'wp';
   // If outputStyle is explicitly createElement, OR if we are using WP (which usually defaults to createElement usage in this project's context, though WP supports JSX if built correctly. 
   // But the user's current WP template uses createElement. Let's respect the config.)
   const useCreateElement = config.runtime.outputStyle === 'createElement';
+  const useReactQuery = config.reactOptions.dataFetching === 'react-query';
 
+  // 1. Build Imports
   if (isWp) {
-    imports = `import { createRoot, createElement } from '@wordpress/element';`;
-    // WP usually uses createElement directly if no JSX transform, but with @wordpress/scripts it supports JSX.
-    // However, sticking to the existing pattern for WP which was createElement.
-    // If user selects JSX for WP, we should output JSX.
-    if (useCreateElement) {
-      renderLogic = `root.render(createElement({{Module}}Page));`;
-    } else {
-      renderLogic = `root.render(<{{Module}}Page />);`;
-    }
+    imports += `import { createRoot, createElement } from '@wordpress/element';\n`;
   } else {
-    // Bundled or Hybrid
-    imports = `import React from 'react';
-import { createRoot } from 'react-dom/client';`;
-
-    if (useCreateElement) {
-      renderLogic = `root.render(React.createElement({{Module}}Page));`;
-    } else {
-      renderLogic = `root.render(<{{Module}}Page />);`;
-    }
+    imports += `import React from 'react';
+import { createRoot } from 'react-dom/client';\n`;
   }
 
+  if (useReactQuery) {
+    imports += `import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../queryClient';\n`;
+  }
+
+  imports += `import { {{Module}}Page } from './{{Module}}Page';`;
+
+  // 2. Build Render Logic
+  let appElement = '';
+
+  if (useCreateElement) {
+    // createElement style
+    const pageElement = isWp ? `createElement({{Module}}Page)` : `React.createElement({{Module}}Page)`;
+
+    if (useReactQuery) {
+      const provider = isWp ? `createElement(QueryClientProvider, { client: queryClient }, ${pageElement})` : `React.createElement(QueryClientProvider, { client: queryClient }, ${pageElement})`;
+      appElement = provider;
+    } else {
+      appElement = pageElement;
+    }
+
+    renderLogic = `root.render(${appElement});`;
+
+  } else {
+    // JSX style
+    const pageElement = `<{{Module}}Page />`;
+
+    if (useReactQuery) {
+      appElement = `<QueryClientProvider client={queryClient}>
+            ${pageElement}
+        </QueryClientProvider>`;
+    } else {
+      appElement = pageElement;
+    }
+
+    renderLogic = `root.render(${appElement});`;
+  }
+
+
   const template = `${imports}
-import { {{Module}}Page } from './{{Module}}Page';
 
 // Initialize when DOM is ready
 function initLogsApp() {

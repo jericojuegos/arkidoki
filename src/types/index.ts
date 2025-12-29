@@ -41,7 +41,8 @@ export interface ReactOptions {
   search: boolean;
   searchType: 'explicit' | 'live';
   tableOptions: TableOptions;
-  loadingOptions: LoadingOptions; // Added
+  loadingOptions: LoadingOptions;
+  dataFetching?: 'none' | 'react-query'; // Added
 }
 
 export interface TableOptions {
