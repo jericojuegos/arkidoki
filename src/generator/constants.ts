@@ -7,7 +7,7 @@ export const DEFAULT_CONFIG: PluginConfig = {
     projectConst: 'SITESYNC',
     projectNamespace: 'MyPlugin',
     pluginDescription: 'Synchronize sites easily',
-    pluginVersion: '00.1',
+    pluginVersion: '0.0.1',
     authorName: 'Team Tangible',
     authorUri: 'https://teamtangible.com',
     modules: [
