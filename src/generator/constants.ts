@@ -39,5 +39,10 @@ export const DEFAULT_CONFIG: PluginConfig = {
         }
     },
     buildApproach: 'tangible', // Default
-    dependencies: []
+    dependencies: [],
+    runtime: {
+        react: 'wp',
+        ui: 'custom',
+        outputStyle: 'jsx'
+    }
 };

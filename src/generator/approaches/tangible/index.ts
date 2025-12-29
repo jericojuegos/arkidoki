@@ -3,7 +3,7 @@ import type { GeneratorStrategy } from '../interface';
 import { replacePlaceholders } from '../../utils';
 import { MAIN_PLUGIN_FILE, SETTINGS_PHP, TANGIBLE_CONFIG, ENQUEUE_SCRIPT_PHP } from './templates';
 import {
-    REACT_ENTRY_INDEX,
+    buildReactEntryTemplate,
     buildPageTemplate,
     buildTableTemplate,
     REACT_FILTERS,
@@ -75,7 +75,7 @@ export class TangibleStrategy implements GeneratorStrategy {
         config.modules.forEach(module => {
             const basePath = `/assets/src/${module.slug}`;
 
-            addFile('index.tsx', `${basePath}/index.tsx`, replacePlaceholders(REACT_ENTRY_INDEX, config, module), 'typescript');
+            addFile('index.tsx', `${basePath}/index.tsx`, buildReactEntryTemplate(config, module), 'typescript');
             addFile(`${module.name}Page.tsx`, `${basePath}/${module.name}Page.tsx`, buildPageTemplate(config, module), 'typescript');
 
             // Table with SCSS

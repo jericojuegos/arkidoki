@@ -11,6 +11,13 @@ export interface PluginConfig {
   reactOptions: ReactOptions;
   buildApproach: 'tangible' | 'standard'; // Added
   dependencies: string[];
+  runtime: RuntimeStrategyConfig;
+}
+
+export interface RuntimeStrategyConfig {
+  react: 'wp' | 'bundled' | 'hybrid';
+  ui: 'wp-components' | 'custom' | 'mantine' | 'radix';
+  outputStyle: 'jsx' | 'createElement';
 }
 
 export interface ModuleConfig {

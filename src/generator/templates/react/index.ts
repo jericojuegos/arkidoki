@@ -1,4 +1,4 @@
-export * from './entry';
+export { buildReactEntryTemplate } from './entry';
 export * from './page';
 export { buildTableTemplate } from './table';
 export * from './filters';

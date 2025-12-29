@@ -3,7 +3,7 @@ import type { GeneratorStrategy } from '../interface';
 import { replacePlaceholders } from '../../utils';
 import { STANDARD_MAIN_PLUGIN } from './templates';
 import {
-    REACT_ENTRY_INDEX,
+    buildReactEntryTemplate,
     buildPageTemplate,
     buildTableTemplate,
     REACT_FILTERS,
@@ -32,7 +32,7 @@ export class StandardStrategy implements GeneratorStrategy {
         config.modules.forEach(module => {
             const basePath = `/assets/src/${module.slug}`;
 
-            addFile('index.tsx', `${basePath}/index.tsx`, replacePlaceholders(REACT_ENTRY_INDEX, config, module), 'typescript');
+            addFile('index.tsx', `${basePath}/index.tsx`, buildReactEntryTemplate(config, module), 'typescript');
             addFile(`${module.name}Page.tsx`, `${basePath}/${module.name}Page.tsx`, buildPageTemplate(config, module), 'typescript');
             addFile(`${module.name}Table.tsx`, `${basePath}/${module.name}Table.tsx`, buildTableTemplate(config, module), 'typescript',
                 buildTableScss(config, module), `${basePath}/${module.name}Table.scss`);

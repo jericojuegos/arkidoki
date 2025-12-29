@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { PluginConfig, ColumnConfig } from '../types';
 import { FeatureInfoIcon } from './FeatureInfoIcon';
+import { RuntimeStrategy } from './RuntimeStrategy';
 
 interface Props {
     config: PluginConfig;
@@ -211,6 +212,8 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                     </div>
                 ))}
             </div>
+
+            <RuntimeStrategy config={config} onChange={onChange} />
 
             <h3>React Options</h3>
             <div className="checkbox-group">
