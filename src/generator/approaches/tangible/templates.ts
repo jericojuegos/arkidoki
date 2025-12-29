@@ -8,7 +8,7 @@ export const MAIN_PLUGIN_FILE = `<?php
  * Author URI: {{AUTHOR_URI}}
  * License: GPLv2 or later
  */
-namespace Tangible\\{{PROJECT_NAME}};
+namespace Tangible\\{{PROJECT_NAMESPACE}};
 
 use tangible\\framework;
 use tangible\\updater;
@@ -54,7 +54,7 @@ class Plugin {
 
   public function load_includes() {
     include_once __DIR__ . '/includes/admin/Settings.php';
-    $this->settings = new \\Tangible\\{{PROJECT_NAME}}\\Admin\\Settings(self::$plugin);
+    $this->settings = new \\Tangible\\{{PROJECT_NAMESPACE}}\\Admin\\Settings(self::$plugin);
   }
 }
 
@@ -63,7 +63,7 @@ new Plugin();
 `;
 
 export const SETTINGS_PHP = `<?php
-namespace Tangible\\{{PROJECT_NAME}}\\Admin;
+namespace Tangible\\{{PROJECT_NAMESPACE}}\\Admin;
 
 class Settings {
   public $plugin;
@@ -94,7 +94,7 @@ export const TANGIBLE_CONFIG = `module.exports = {
 `;
 
 export const ENQUEUE_SCRIPT_PHP = `<?php
-namespace Tangible\\{{PROJECT_NAME}}\\Admin;
+namespace Tangible\\{{PROJECT_NAMESPACE}}\\Admin;
 
 function enqueue_assets() {
   wp_enqueue_script(

@@ -27,11 +27,18 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         const constName = name.toUpperCase().replace(/[^A-Z0-9]+/g, '_');
 
+        // Generate PascalCase namespace: 'My Plugin Name' -> 'MyPluginName'
+        const namespace = name.replace(/[^a-zA-Z0-9 ]/g, '') // Remove special chars but keep spaces for split
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join('');
+
         onChange({
             ...config,
             projectName: name,
             projectSlug: slug,
             projectConst: constName,
+            projectNamespace: namespace,
             pluginTitle: name
         });
     };

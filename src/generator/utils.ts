@@ -12,6 +12,7 @@ export const replacePlaceholders = (template: string, config: PluginConfig, modu
     content = content.replace(/{{PLUGIN_DESCRIPTION}}/g, config.pluginDescription);
     content = content.replace(/{{AUTHOR_NAME}}/g, config.authorName);
     content = content.replace(/{{AUTHOR_URI}}/g, config.authorUri);
+    content = content.replace(/{{PROJECT_NAMESPACE}}/g, config.projectNamespace || config.projectName.replace(/[^a-zA-Z0-9]/g, ''));
 
     // Module replacements
     if (module) {

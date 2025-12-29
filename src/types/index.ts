@@ -3,6 +3,7 @@ export interface PluginConfig {
   projectSlug: string;
   pluginTitle: string;
   projectConst: string; // SITESYNC
+  projectNamespace: string; // MyProjectName
   pluginDescription: string;
   pluginVersion: string;
   authorName: string;
