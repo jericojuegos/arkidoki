@@ -43,10 +43,17 @@ export class TangibleStrategy implements GeneratorStrategy {
 
         // 2. Settings.php (includes/admin/Settings.php)
         const tabsCode = config.modules.map(m => {
-            return `$this->add_tab([ 'name' => '${m.slug}', 'title' => '${m.name}' ]);`;
-        }).join('\n    ');
+            return `'${m.slug}' => [
+                'title' => '${m.name}',
+                'callback' => function() {
+                    ?>
+                    <div id="${config.projectSlug}-${m.slug}-root" class="${config.projectSlug}-admin-page"></div>
+                    <?php
+                }
+            ],`;
+        }).join('\n            ');
 
-        const settingsContent = replacePlaceholders(SETTINGS_PHP, config).replace('{{MODULE_TABS_REGISTRATION}}', tabsCode);
+        const settingsContent = replacePlaceholders(SETTINGS_PHP, config).replace('// {{MODULE_TABS_REGISTRATION}}', tabsCode);
         addFile(
             'Settings.php',
             '/includes/admin/Settings.php',

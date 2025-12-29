@@ -112,6 +112,7 @@ class Settings {
                     framework\\render_features_settings_page( Plugin::$plugin );
                 }
             ],
+            // {{MODULE_TABS_REGISTRATION}}
         ],
         'features' => [
             [
