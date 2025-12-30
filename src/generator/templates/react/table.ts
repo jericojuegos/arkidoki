@@ -9,6 +9,7 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
     const needsTotalItems = hasPagination && (paginationStyle === 'v2');
 
     // 1. Imports
+    builder.addImport(`import { useMemo } from 'react';`);
     builder.addImport(`import { CheckboxControl } from '@wordpress/components';`);
     builder.addImport(`import {
     useReactTable,
@@ -164,14 +165,14 @@ ${importsList}
 
 interface {{Module}}TableProps {
     {{module}}: {{Module}}[];
-    isLoading: boolean;${paginationProps}
+    refreshing: boolean;${paginationProps}
 }
 
 const columnHelper = createColumnHelper<{{Module}}>();
 
 export const {{Module}}Table = ({
     {{module}},
-    isLoading,${propsDestructuring}
+    refreshing,${propsDestructuring}
 }: {{Module}}TableProps) => {
 
 ${methodsList}
