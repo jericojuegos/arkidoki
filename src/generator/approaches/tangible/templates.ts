@@ -184,5 +184,56 @@ function enqueue_assets() {
   );
 }
 
-add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_assets' );
+add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\\\enqueue_assets' );
+`;
+
+export const MODULE_ADMIN_CLASS = `<?php
+
+namespace Tangible\\\\{{PROJECT_NAMESPACE}}\\\\Admin;
+
+defined('ABSPATH') or die();
+
+use Tangible\\\\{{PROJECT_NAMESPACE}}\\\\Plugin;
+
+class {{Module}} {
+
+    public function enqueue_scripts() {
+        wp_enqueue_style(
+            '{{PLUGIN_SLUG}}-{{module}}',
+            Plugin::$plugin->assets_url . '/build/{{module}}.min.css',
+            [],
+            Plugin::$plugin->version
+        );
+        
+        wp_enqueue_script(
+            '{{PLUGIN_SLUG}}-{{module}}',
+            Plugin::$plugin->assets_url . '/build/{{module}}.min.js',
+            [ 'wp-element', 'wp-i18n', 'wp-api-fetch' ],
+            Plugin::$plugin->version,
+            true
+        );
+
+        wp_localize_script(
+            '{{PLUGIN_SLUG}}-{{module}}',
+            '{{projectSlug}}Data',
+            array(
+                'apiUrl'    => '{{PLUGIN_SLUG}}/v1', 
+                'nonce'     => wp_create_nonce( 'wp_rest' ),
+                'apiKey'    => get_option( '{{PLUGIN_SLUG}}_api_key' ),
+                'siteUrl'   => get_site_url(),
+            )
+        );
+    }
+
+    public function render() : void {
+        $this->enqueue_scripts();
+        ?>
+        <div class="{{PLUGIN_SLUG}}-{{module}}-wrap">
+            <!-- React will mount here -->
+            <div id="{{PLUGIN_SLUG}}-{{module}}-root"></div>
+        </div>
+        <?php
+    }
+	
+}
 `;

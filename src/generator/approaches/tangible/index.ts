@@ -1,7 +1,7 @@
 import type { PluginConfig, GeneratedFile } from '../../../types';
 import type { GeneratorStrategy } from '../interface';
 import { replacePlaceholders } from '../../utils';
-import { MAIN_PLUGIN_FILE, SETTINGS_PHP, TANGIBLE_CONFIG, ENQUEUE_SCRIPT_PHP } from './templates';
+import { MAIN_PLUGIN_FILE, SETTINGS_PHP, TANGIBLE_CONFIG, ENQUEUE_SCRIPT_PHP, MODULE_ADMIN_CLASS } from './templates';
 import {
     buildReactEntryTemplate,
     buildPageTemplate,
@@ -42,12 +42,12 @@ export class TangibleStrategy implements GeneratorStrategy {
 
         // 2. Settings.php (includes/admin/Settings.php)
         const tabsCode = config.modules.map(m => {
+            const className = m.name.charAt(0).toUpperCase() + m.name.slice(1);
             return `'${m.slug}' => [
                 'title' => '${m.name}',
                 'callback' => function() {
-                    ?>
-                    <div id="${config.projectSlug}-${m.slug}-root" class="${config.projectSlug}-admin-page"></div>
-                    <?php
+                    $module = new \\Tangible\\${config.projectNamespace}\\Admin\\${className}();
+                    $module->render();
                 }
             ],`;
         }).join('\n            ');
@@ -59,12 +59,16 @@ export class TangibleStrategy implements GeneratorStrategy {
             settingsContent
         );
 
-        // 3. Enqueue.php
-        addFile(
-            'Enqueue.php',
-            '/includes/admin/Enqueue.php',
-            replacePlaceholders(ENQUEUE_SCRIPT_PHP, config)
-        );
+        const isIndependent = config.architecture === 'independent';
+
+        // 3. Enqueue.php (Skips if Multi-entry/Independent)
+        if (!isIndependent) {
+            addFile(
+                'Enqueue.php',
+                '/includes/admin/Enqueue.php',
+                replacePlaceholders(ENQUEUE_SCRIPT_PHP, config)
+            );
+        }
 
         // 4. Tangible Config
         const useTangibleFields = config.dependencies?.tangibleFields ?? false;
@@ -136,9 +140,16 @@ export class TangibleStrategy implements GeneratorStrategy {
             );
         }
 
-        // 5. Module Files (React + SCSS)
+        // 5. Module Files (React + SCSS + PHP Module Class)
         config.modules.forEach(module => {
             const basePath = `/assets/src/${module.slug}`;
+
+            // Add Module PHP Class
+            addFile(
+                `${module.name}.php`,
+                `/includes/Admin/${module.name}.php`,
+                replacePlaceholders(MODULE_ADMIN_CLASS, config, module)
+            );
 
             addFile('index.tsx', `${basePath}/index.tsx`, buildReactEntryTemplate(config, module), 'typescript');
 
