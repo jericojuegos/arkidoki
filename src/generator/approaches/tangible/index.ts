@@ -93,15 +93,27 @@ export class TangibleStrategy implements GeneratorStrategy {
             replacePlaceholders(SETTINGS_ENDPOINT_PHP, config)
         );
 
-        const endpointRegistration = config.modules.map(m => {
-            const className = m.name.charAt(0).toUpperCase() + m.name.slice(1);
-            return `(new Endpoints\\${className}Endpoint())->register_routes();`;
-        }).join('\n        ');
+        const endpointImports = [
+            `use Tangible\\${config.projectNamespace}\\API\\Endpoints\\SettingsEndpoint;`,
+            ...config.modules.map(m => {
+                const className = m.name.charAt(0).toUpperCase() + m.name.slice(1);
+                return `use Tangible\\${config.projectNamespace}\\API\\Endpoints\\${className}Endpoint;`;
+            })
+        ].join('\n');
+
+        const endpointRegistration = [
+            `(new SettingsEndpoint())->register_routes();`,
+            ...config.modules.map(m => {
+                const className = m.name.charAt(0).toUpperCase() + m.name.slice(1);
+                return `(new ${className}Endpoint())->register_routes();`;
+            })
+        ].join('\n        ');
 
         addFile(
             'RestAPI.php',
             '/includes/API/RestAPI.php',
             replacePlaceholders(REST_API_PHP, config)
+                .replace('// {{ENDPOINT_IMPORTS}}', endpointImports)
                 .replace('// {{ENDPOINT_REGISTRATION}}', endpointRegistration)
         );
 

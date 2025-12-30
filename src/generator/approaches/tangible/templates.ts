@@ -430,12 +430,13 @@ export const REST_API_PHP = `<?php
 
 namespace Tangible\\{{PROJECT_NAMESPACE}}\\API;
 
+// {{ENDPOINT_IMPORTS}}
+
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class RestAPI {
 
    public function register_endpoints(): void {
-        (new Endpoints\\SettingsEndpoint())->register_routes();
         // {{ENDPOINT_REGISTRATION}}
    }
 }
