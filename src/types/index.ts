@@ -8,11 +8,16 @@ export interface PluginConfig {
   pluginVersion: string;
   authorName: string;
   authorUri: string;
+  architecture: 'independent' | 'hybrid' | 'spa';
   modules: ModuleConfig[];
   reactOptions: ReactOptions;
   buildApproach: 'tangible' | 'standard'; // Added
-  dependencies: string[];
+  dependencies: DependenciesConfig;
   runtime: RuntimeStrategyConfig;
+}
+
+export interface DependenciesConfig {
+  tangibleFields: boolean; // Use Tangible Fields library
 }
 
 export interface RuntimeStrategyConfig {

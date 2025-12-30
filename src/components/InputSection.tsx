@@ -134,6 +134,45 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                 />
             </div>
 
+
+            <div className="form-group">
+                <label>Architecture Pattern</label>
+                <select
+                    value={config.architecture || 'independent'}
+                    onChange={(e) => handleChange('architecture', e.target.value)}
+                >
+                    <option value="independent">Independent Modules (Multi-entry)</option>
+                    <option value="hybrid">Hybrid Core (Shared Providers) - Recommended</option>
+                    <option value="spa">Single Entry (SPA) - Advanced</option>
+                </select>
+                <p className="help-text">
+                    <strong>Independent:</strong> Each module is isolated.<br />
+                    <strong>Hybrid:</strong> Shared <code>app/providers.tsx</code> for context.<br />
+                    <strong>SPA:</strong> Single entry point with client-side routing.
+                </p>
+            </div>
+
+            <div className="form-group">
+                <label className="checkbox-label">
+                    <input
+                        type="checkbox"
+                        checked={config.dependencies?.tangibleFields ?? false}
+                        onChange={(e) => onChange({
+                            ...config,
+                            dependencies: {
+                                ...config.dependencies,
+                                tangibleFields: e.target.checked
+                            }
+                        })}
+                    />
+                    Use Tangible Fields
+                </label>
+                <p className="help-text">
+                    Adds <code>importToGlobal</code> for <code>tangible-fields</code> in build config.
+                </p>
+            </div>
+
+
             <div className="form-group">
                 <label>Description</label>
                 <input

@@ -25,26 +25,29 @@ export const DEFAULT_CONFIG: PluginConfig = {
         pagination: true,
         paginationStyle: 'simple',
         filters: true,
-        detailsModal: true,
-        search: true,
-        searchType: 'explicit',
+        detailsModal: true, // Kept from original, not explicitly removed by edit
+        search: true, // Kept from original, not explicitly removed by edit
+        searchType: 'explicit', // Kept from original, not explicitly removed by edit
         tableOptions: {
             responsive: true,
-            styleModifiers: []
+            styleModifiers: ['striped', 'hover']
         },
         loadingOptions: {
-            initial: 'none',
-            refreshOverlay: false,
+            initial: 'skeleton',
+            refreshOverlay: true,
             buttonLoading: false,
             emptyState: 'simple'
         },
         dataFetching: 'none'
     },
     buildApproach: 'tangible', // Default
-    dependencies: [],
+    dependencies: {
+        tangibleFields: false
+    },
     runtime: {
         react: 'wp',
-        ui: 'custom',
-        outputStyle: 'jsx'
-    }
+        ui: 'wp-components',
+        outputStyle: 'createElement'
+    },
+    architecture: 'independent'
 };

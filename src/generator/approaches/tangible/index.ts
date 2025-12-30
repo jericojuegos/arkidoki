@@ -10,10 +10,9 @@ import {
     PAGINATION_TEMPLATES,
     REACT_DETAILS_MODAL
 } from '../../templates/react/index';
-// Assuming these exports exist in react/index based on previous steps, if not I might need to export them.
-// I need to ensure they are exported from '../../templates/react/index' first.
 import { QUERY_CLIENT } from '../../templates/react/query-client';
 import { USE_QUERY_HOOK } from '../../templates/react/use-query';
+import { APP_PROVIDERS } from '../../templates/react/providers';
 import { PAGINATION_SCSS_TEMPLATES, buildTableScss } from '../../templates/scss/index';
 
 export class TangibleStrategy implements GeneratorStrategy {
@@ -68,13 +67,46 @@ export class TangibleStrategy implements GeneratorStrategy {
         );
 
         // 4. Tangible Config
-        const buildConfig = config.modules.map(m => {
-            return `{
+        const useTangibleFields = config.dependencies?.tangibleFields ?? false;
+        const isSpa = config.architecture === 'spa';
+
+        let buildConfig = '';
+
+        if (isSpa) {
+            // SPA mode: Single entry point for admin
+            const importToGlobal = useTangibleFields
+                ? `\n      importToGlobal: {\n        "tangible-fields": "window.tangibleFields",\n      },`
+                : '';
+
+            buildConfig = `// Admin SPA
+    {
+      src: 'assets/src/admin.scss',
+      dest: 'assets/build/admin.min.css',
+    },
+    {
+      src: 'assets/src/admin.tsx',
+      dest: 'assets/build/admin.min.js',
+      react: 'wp',${importToGlobal}
+    }`;
+        } else {
+            // Multi-entry mode (independent or hybrid)
+            buildConfig = config.modules.map(m => {
+                const importToGlobal = useTangibleFields
+                    ? `\n      importToGlobal: {\n        "tangible-fields": "window.tangibleFields",\n      },`
+                    : '';
+
+                return `// ${m.name} Module
+    {
+      src: 'assets/src/${m.slug}/index.scss',
+      dest: 'assets/build/${m.slug}.min.css',
+    },
+    {
       src: 'assets/src/${m.slug}/index.tsx',
       dest: 'assets/build/${m.slug}.min.js',
-      react: 'wp',
+      react: 'wp',${importToGlobal}
     }`;
-        }).join(',\n    ');
+            }).join(',\n');
+        }
 
         const configContent = replacePlaceholders(TANGIBLE_CONFIG, config).replace('// {{MODULE_BUILD_CONFIGS}}', buildConfig);
         addFile(
@@ -90,6 +122,16 @@ export class TangibleStrategy implements GeneratorStrategy {
                 'queryClient.ts',
                 '/assets/src/queryClient.ts',
                 QUERY_CLIENT,
+                'typescript'
+            );
+        }
+
+        // 4.2 Shared Providers (for Hybrid architecture)
+        if (config.architecture === 'hybrid') {
+            addFile(
+                'providers.tsx',
+                '/assets/src/app/providers.tsx',
+                APP_PROVIDERS,
                 'typescript'
             );
         }

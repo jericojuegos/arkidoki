@@ -10,10 +10,9 @@ import {
     PAGINATION_TEMPLATES,
     REACT_DETAILS_MODAL
 } from '../../templates/react/index';
-// Assuming these exports exist in react/index based on previous steps, if not I might need to export them.
-// I need to ensure they are exported from '../../templates/react/index' first.
 import { QUERY_CLIENT } from '../../templates/react/query-client';
 import { USE_QUERY_HOOK } from '../../templates/react/use-query';
+import { APP_PROVIDERS } from '../../templates/react/providers';
 import { PAGINATION_SCSS_TEMPLATES, buildTableScss } from '../../templates/scss/index';
 
 export class StandardStrategy implements GeneratorStrategy {
@@ -41,12 +40,22 @@ export class StandardStrategy implements GeneratorStrategy {
             replacePlaceholders(STANDARD_MAIN_PLUGIN, config)
         );
 
-        // 4.1 Query Client (Shared)
+        // 2.1 Query Client (Shared)
         if (useReactQuery) {
             addFile(
                 'queryClient.ts',
                 '/assets/src/queryClient.ts',
                 QUERY_CLIENT,
+                'typescript'
+            );
+        }
+
+        // 2.2 Shared Providers (for Hybrid architecture)
+        if (config.architecture === 'hybrid') {
+            addFile(
+                'providers.tsx',
+                '/assets/src/app/providers.tsx',
+                APP_PROVIDERS,
                 'typescript'
             );
         }

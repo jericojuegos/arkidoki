@@ -158,11 +158,6 @@ class Settings {
 
 export const TANGIBLE_CONFIG = `module.exports = {
   build: [
-    {
-      src: 'assets/src/index.tsx',
-      dest: 'assets/build/app.min.js',
-      react: 'wp',
-    },
     // {{MODULE_BUILD_CONFIGS}}
   ],
   format: 'assets/src/**/*.{php,ts,tsx,scss}',
