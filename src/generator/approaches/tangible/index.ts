@@ -1,7 +1,17 @@
 import type { PluginConfig, GeneratedFile } from '../../../types';
 import type { GeneratorStrategy } from '../interface';
 import { replacePlaceholders } from '../../utils';
-import { MAIN_PLUGIN_FILE, SETTINGS_PHP, TANGIBLE_CONFIG, ENQUEUE_SCRIPT_PHP, MODULE_ADMIN_CLASS } from './templates';
+import {
+    MAIN_PLUGIN_FILE,
+    SETTINGS_PHP,
+    TANGIBLE_CONFIG,
+    ENQUEUE_SCRIPT_PHP,
+    MODULE_ADMIN_CLASS,
+    ABSTRACT_ENDPOINT_PHP,
+    SETTINGS_ENDPOINT_PHP,
+    MODULE_ENDPOINT_PHP,
+    REST_API_PHP
+} from './templates';
 import {
     buildReactEntryTemplate,
     buildPageTemplate,
@@ -69,6 +79,31 @@ export class TangibleStrategy implements GeneratorStrategy {
                 replacePlaceholders(ENQUEUE_SCRIPT_PHP, config)
             );
         }
+
+        // 4. API (includes/API)
+        addFile(
+            'AbstractEndpoint.php',
+            '/includes/API/Endpoints/AbstractEndpoint.php',
+            replacePlaceholders(ABSTRACT_ENDPOINT_PHP, config)
+        );
+
+        addFile(
+            'SettingsEndpoint.php',
+            '/includes/API/Endpoints/SettingsEndpoint.php',
+            replacePlaceholders(SETTINGS_ENDPOINT_PHP, config)
+        );
+
+        const endpointRegistration = config.modules.map(m => {
+            const className = m.name.charAt(0).toUpperCase() + m.name.slice(1);
+            return `(new Endpoints\\${className}Endpoint())->register_routes();`;
+        }).join('\n        ');
+
+        addFile(
+            'RestAPI.php',
+            '/includes/API/RestAPI.php',
+            replacePlaceholders(REST_API_PHP, config)
+                .replace('// {{ENDPOINT_REGISTRATION}}', endpointRegistration)
+        );
 
         // 4. Tangible Config
         const useTangibleFields = config.dependencies?.tangibleFields ?? false;
@@ -152,6 +187,13 @@ export class TangibleStrategy implements GeneratorStrategy {
             );
 
             addFile('index.tsx', `${basePath}/index.tsx`, buildReactEntryTemplate(config, module), 'typescript');
+
+            // Add Module API Endpoint
+            addFile(
+                `${module.name}Endpoint.php`,
+                `/includes/API/Endpoints/${module.name}Endpoint.php`,
+                replacePlaceholders(MODULE_ENDPOINT_PHP, config, module)
+            );
 
             // React Query Hook
             if (useReactQuery) {

@@ -55,6 +55,12 @@ class Plugin {
   public function load_includes() {
     include_once __DIR__ . '/includes/admin/Settings.php';
     $this->settings = new \\Tangible\\{{PROJECT_NAMESPACE}}\\Admin\\Settings(self::$plugin);
+
+    // REST API
+    add_action('rest_api_init', function() {
+        $api = new \\Tangible\\{{PROJECT_NAMESPACE}}\\API\\RestAPI();
+        $api->register_endpoints();
+    });
   }
 }
 
@@ -235,5 +241,202 @@ class {{Module}} {
         <?php
     }
 	
+}
+`;
+
+export const ABSTRACT_ENDPOINT_PHP = `<?php
+
+namespace Tangible\\{{PROJECT_NAMESPACE}}\\API\\Endpoints;
+
+use WP_REST_Request;
+use WP_Error;
+
+abstract class AbstractEndpoint {
+
+    /**
+     * REST namespace.
+     */
+    protected string $namespace = '{{PLUGIN_SLUG}}/v1';
+
+    /**
+     * Each endpoint MUST register its routes.
+     */
+    abstract public function register_routes(): void;
+
+    /**
+     * Final authorization entry point.
+     *
+     * @param WP_REST_Request $request
+     * @return true|WP_Error
+     */
+    final public function authorize( WP_REST_Request $request ) {
+
+        // 1. API key auth (global)
+        $result = $this->authorize_api_key( $request );
+        if ( $result !== true ) {
+            return $result;
+        }
+
+        // 2. Endpoint-specific auth (optional)
+        return $this->additional_authorization( $request );
+    }
+
+    /**
+     * API key validation (shared logic).
+     */
+    protected function authorize_api_key( WP_REST_Request $request ) {
+
+        $auth_header = $request->get_header( 'authorization' );
+
+        if ( empty( $auth_header ) ) {
+            return new WP_Error(
+                'missing_auth_header',
+                'Authorization header is required',
+                [ 'status' => 401 ]
+            );
+        }
+
+        if ( ! preg_match( '/^Bearer\\s+([A-Za-z0-9+\\/=_-]+)$/i', $auth_header, $matches ) ) {
+            return new WP_Error(
+                'invalid_auth_format',
+                'Invalid authorization header format',
+                [ 'status' => 401 ]
+            );
+        }
+
+        $provided_key = trim( $matches[1] );
+        $stored_key = get_option( '{{PLUGIN_SLUG}}_api_key', '' );
+
+        if ( empty( $stored_key ) ) {
+            return new WP_Error(
+                'api_key_not_configured',
+                'API key not configured on site',
+                [ 'status' => 500 ]
+            );
+        }
+
+        if ( ! hash_equals( $stored_key, $provided_key ) ) {
+            return new WP_Error(
+                'invalid_api_key',
+                'Invalid API key',
+                [ 'status' => 403 ]
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * Optional per-endpoint authorization hook.
+     */
+    protected function additional_authorization( WP_REST_Request $request ) {
+        return true;
+    }
+
+    /**
+     * Standard success response helper.
+     */
+    protected function success( $data = [], int $status = 200 ) {
+        return rest_ensure_response( [
+            'success' => true,
+            'data'    => $data,
+        ] )->set_status( $status );
+    }
+
+    /**
+     * Standard error response helper.
+     */
+    protected function error( string $message, int $status = 400 ) {
+        return new WP_Error(
+            'endpoint_error',
+            $message,
+            [ 'status' => $status ]
+        );
+    }
+}
+`;
+
+export const SETTINGS_ENDPOINT_PHP = `<?php
+
+namespace Tangible\\{{PROJECT_NAMESPACE}}\\API\\Endpoints;
+
+use WP_REST_Request;
+
+class SettingsEndpoint extends AbstractEndpoint {
+
+    public function register_routes(): void {
+        register_rest_route( $this->namespace, '/settings', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ $this, 'get_settings' ],
+                'permission_callback' => [ $this, 'authorize' ],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [ $this, 'update_settings' ],
+                'permission_callback' => [ $this, 'authorize' ],
+            ]
+        ] );
+    }
+
+    public function get_settings( WP_REST_Request $request ) {
+        return $this->success( [
+            'site_url' => get_site_url(),
+            'version'  => '{{PLUGIN_VERSION}}',
+        ] );
+    }
+
+    public function update_settings( WP_REST_Request $request ) {
+        return $this->success( [ 'message' => 'Settings updated' ] );
+    }
+}
+`;
+
+export const MODULE_ENDPOINT_PHP = `<?php
+
+namespace Tangible\\{{PROJECT_NAMESPACE}}\\API\\Endpoints;
+
+use WP_REST_Request;
+
+class {{Module}}Endpoint extends AbstractEndpoint {
+
+    public function register_routes(): void {
+        register_rest_route( $this->namespace, '/{{module}}', [
+            'methods'             => 'GET',
+            'callback'            => [ $this, 'get_items' ],
+            'permission_callback' => [ $this, 'authorize' ],
+        ] );
+    }
+
+    public function get_items( WP_REST_Request $request ) {
+        // Sample data for {{Module}}
+        $items = [
+            [
+                'id'      => 1,
+                'name'    => 'Example {{Module}}',
+                'status'  => 'active',
+                'date'    => current_time( 'mysql' ),
+            ],
+        ];
+
+        return $this->success( [
+            'items' => $items,
+        ] );
+    }
+}
+`;
+
+export const REST_API_PHP = `<?php
+
+namespace Tangible\\{{PROJECT_NAMESPACE}}\\API;
+
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+class RestAPI {
+
+   public function register_endpoints(): void {
+        (new Endpoints\\SettingsEndpoint())->register_routes();
+        // {{ENDPOINT_REGISTRATION}}
+   }
 }
 `;

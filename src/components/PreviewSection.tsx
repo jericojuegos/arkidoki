@@ -25,16 +25,30 @@ export const PreviewSection: React.FC<Props> = ({ files }) => {
 
     // Group files by type/module
     const mainFiles: { index: number; file: GeneratedFile }[] = [];
+    const mainAdminFiles: { index: number; file: GeneratedFile }[] = [];
+    const mainApiFiles: { index: number; file: GeneratedFile }[] = [];
     const modules: Record<string, { index: number; file: GeneratedFile }[]> = {};
 
     files.forEach((file, idx) => {
-        const parts = file.path.split('/');
-        // Simple heuristic: if it's in assets/src/[module]/ it's a module file
+        const path = file.path;
+        const parts = path.split('/');
+
+        // 1. Module Files (React/SCSS - usually in assets/src/)
         if (parts.includes('src') && parts.length >= 4 && parts[parts.indexOf('src') + 1] !== 'app') {
             const moduleName = parts[parts.indexOf('src') + 1];
             if (!modules[moduleName]) modules[moduleName] = [];
             modules[moduleName].push({ index: idx, file });
-        } else {
+        }
+        // 2. API Files (All files in includes/API)
+        else if (path.toLowerCase().includes('/api/')) {
+            mainApiFiles.push({ index: idx, file });
+        }
+        // 3. Admin PHP Classes (All files in includes/Admin)
+        else if (path.toLowerCase().includes('/admin/')) {
+            mainAdminFiles.push({ index: idx, file });
+        }
+        // 4. Core Plugin Files (Main root files)
+        else {
             mainFiles.push({ index: idx, file });
         }
     });
@@ -123,6 +137,38 @@ export const PreviewSection: React.FC<Props> = ({ files }) => {
                         ))}
                     </div>
 
+                    {mainAdminFiles.length > 0 && (
+                        <div className="sidebar-group">
+                            <div className="group-label">Main - Admin</div>
+                            {mainAdminFiles.map(({ index, file }) => (
+                                <button
+                                    key={index}
+                                    className={clsx('file-item', activeFileIndex === index && 'active')}
+                                    onClick={() => handleFileSwitch(index)}
+                                >
+                                    <span className="file-icon">🐘</span>
+                                    {file.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {mainApiFiles.length > 0 && (
+                        <div className="sidebar-group">
+                            <div className="group-label">Main - API</div>
+                            {mainApiFiles.map(({ index, file }) => (
+                                <button
+                                    key={index}
+                                    className={clsx('file-item', activeFileIndex === index && 'active')}
+                                    onClick={() => handleFileSwitch(index)}
+                                >
+                                    <span className="file-icon">⚡</span>
+                                    {file.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     {Object.entries(modules).map(([moduleName, moduleFiles]) => (
                         <div key={moduleName} className="sidebar-group">
                             <div className="group-label">{moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}</div>
@@ -132,7 +178,10 @@ export const PreviewSection: React.FC<Props> = ({ files }) => {
                                     className={clsx('file-item', activeFileIndex === index && 'active')}
                                     onClick={() => handleFileSwitch(index)}
                                 >
-                                    <span className="file-icon">{file.language === 'php' ? '🐘' : '⚛️'}</span>
+                                    <span className="file-icon">
+                                        {file.path.endsWith('Endpoint.php') ? '⚡' :
+                                            file.language === 'php' ? '🐘' : '⚛️'}
+                                    </span>
                                     {file.name}
                                 </button>
                             ))}
