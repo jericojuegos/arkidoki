@@ -23,6 +23,22 @@ export const PreviewSection: React.FC<Props> = ({ files }) => {
 
     const activeFile = files[activeFileIndex];
 
+    // Group files by type/module
+    const mainFiles: { index: number; file: GeneratedFile }[] = [];
+    const modules: Record<string, { index: number; file: GeneratedFile }[]> = {};
+
+    files.forEach((file, idx) => {
+        const parts = file.path.split('/');
+        // Simple heuristic: if it's in assets/src/[module]/ it's a module file
+        if (parts.includes('src') && parts.length >= 4 && parts[parts.indexOf('src') + 1] !== 'app') {
+            const moduleName = parts[parts.indexOf('src') + 1];
+            if (!modules[moduleName]) modules[moduleName] = [];
+            modules[moduleName].push({ index: idx, file });
+        } else {
+            mainFiles.push({ index: idx, file });
+        }
+    });
+
     // Reset sub-tab when switching files
     const handleFileSwitch = (idx: number) => {
         setActiveFileIndex(idx);
@@ -30,7 +46,7 @@ export const PreviewSection: React.FC<Props> = ({ files }) => {
     };
 
     const hasStyleContent = activeFile?.styleContent && activeFile.styleContent.length > 0;
-
+    // ... (rest of helper functions same as before)
     const getCurrentContent = () => {
         if (!activeFile) return '';
         if (activeSubTab === 'scss' && hasStyleContent) {
@@ -81,61 +97,83 @@ export const PreviewSection: React.FC<Props> = ({ files }) => {
                 console.warn('Highlight syntax error', e);
             }
         }
-        // Fallback escape
-        return content
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
+        return content.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     };
 
     if (!activeFile) return <div className="panel right-panel card">No files generated</div>;
 
     return (
-        <div className="card panel right-panel">
+        <div className="card panel right-panel preview-container">
             <h3>Preview</h3>
 
-            {/* File Tabs */}
-            <div className="tabs">
-                {files.map((file, idx) => (
-                    <button
-                        key={idx}
-                        className={clsx('tab', activeFileIndex === idx && 'active')}
-                        onClick={() => handleFileSwitch(idx)}
-                    >
-                        {file.name}
-                    </button>
-                ))}
-            </div>
+            <div className="preview-layout">
+                {/* File Sidebar */}
+                <div className="file-sidebar">
+                    <div className="sidebar-group">
+                        <div className="group-label">Main</div>
+                        {mainFiles.map(({ index, file }) => (
+                            <button
+                                key={index}
+                                className={clsx('file-item', activeFileIndex === index && 'active')}
+                                onClick={() => handleFileSwitch(index)}
+                            >
+                                <span className="file-icon">{file.language === 'php' ? '🐘' : '📜'}</span>
+                                {file.name}
+                            </button>
+                        ))}
+                    </div>
 
-            {/* Sub-tabs for TSX/SCSS */}
-            {hasStyleContent && (
-                <div className="sub-tabs">
-                    <button
-                        className={clsx('sub-tab', activeSubTab === 'code' && 'active')}
-                        onClick={() => setActiveSubTab('code')}
-                    >
-                        TSX
-                    </button>
-                    <button
-                        className={clsx('sub-tab', activeSubTab === 'scss' && 'active')}
-                        onClick={() => setActiveSubTab('scss')}
-                    >
-                        SCSS
-                    </button>
+                    {Object.entries(modules).map(([moduleName, moduleFiles]) => (
+                        <div key={moduleName} className="sidebar-group">
+                            <div className="group-label">{moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}</div>
+                            {moduleFiles.map(({ index, file }) => (
+                                <button
+                                    key={index}
+                                    className={clsx('file-item', activeFileIndex === index && 'active')}
+                                    onClick={() => handleFileSwitch(index)}
+                                >
+                                    <span className="file-icon">{file.language === 'php' ? '🐘' : '⚛️'}</span>
+                                    {file.name}
+                                </button>
+                            ))}
+                        </div>
+                    ))}
                 </div>
-            )}
 
-            <div className="code-preview">
-                <button className="copy-btn" onClick={copyToClipboard}>Copy</button>
-                <pre>
-                    <code
-                        className={`language-${getCurrentLanguage()}`}
-                        dangerouslySetInnerHTML={{ __html: getHighlightedCode() }}
-                    />
-                </pre>
-            </div>
-            <div style={{ padding: '0.5rem', fontSize: '0.8rem', color: '#666' }}>
-                Path: {getCurrentPath()}
+                {/* Code Content */}
+                <div className="preview-content">
+                    <div className="content-header">
+                        <div className="file-path">{getCurrentPath()}</div>
+
+                        {hasStyleContent && (
+                            <div className="sub-tabs">
+                                <button
+                                    className={clsx('sub-tab', activeSubTab === 'code' && 'active')}
+                                    onClick={() => setActiveSubTab('code')}
+                                >
+                                    TSX
+                                </button>
+                                <button
+                                    className={clsx('sub-tab', activeSubTab === 'scss' && 'active')}
+                                    onClick={() => setActiveSubTab('scss')}
+                                >
+                                    SCSS
+                                </button>
+                            </div>
+                        )}
+
+                        <button className="copy-btn-inline" onClick={copyToClipboard}>Copy</button>
+                    </div>
+
+                    <div className="code-preview-scroll">
+                        <pre>
+                            <code
+                                className={`language-${getCurrentLanguage()}`}
+                                dangerouslySetInnerHTML={{ __html: getHighlightedCode() }}
+                            />
+                        </pre>
+                    </div>
+                </div>
             </div>
         </div>
     );
