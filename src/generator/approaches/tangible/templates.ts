@@ -189,11 +189,11 @@ add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\\\enqueue_assets' );
 
 export const MODULE_ADMIN_CLASS = `<?php
 
-namespace Tangible\\\\{{PROJECT_NAMESPACE}}\\\\Admin;
+namespace Tangible\\{{PROJECT_NAMESPACE}}\\Admin;
 
 defined('ABSPATH') or die();
 
-use Tangible\\\\{{PROJECT_NAMESPACE}}\\\\Plugin;
+use Tangible\\{{PROJECT_NAMESPACE}}\\Plugin;
 
 class {{Module}} {
 

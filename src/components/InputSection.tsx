@@ -134,6 +134,16 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                 />
             </div>
 
+            <div className="form-group">
+                <label>Project Namespace</label>
+                <input
+                    type="text"
+                    value={config.projectNamespace}
+                    onChange={(e) => handleChange('projectNamespace', e.target.value)}
+                    placeholder="e.g. SiteSync"
+                />
+            </div>
+
 
             <div className="form-group">
                 <label>Architecture Pattern</label>
