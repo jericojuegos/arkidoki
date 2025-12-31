@@ -6,6 +6,13 @@ export const buildTypesTemplate = (config: PluginConfig, module: ModuleConfig): 
     id: number;
     ${module.columns.map(col => `${col.accessorKey}: any;`).join('\n    ')}
 }
+
+export type {{Module}}Response = {
+    success: boolean;
+    data: {{ModuleSingular}}[];
+    total: number;
+    pages: number;
+};
 `;
 
     return replacePlaceholders(template, config, module);
