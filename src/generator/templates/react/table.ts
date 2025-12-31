@@ -18,7 +18,7 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
     createColumnHelper,
     ColumnDef,
 } from '@tanstack/react-table';`);
-    builder.addImport(`import type { {{Module}} } from './types';`);
+    builder.addImport(`import type { {{ModuleSingular}} } from './types';`);
     if (hasPagination) {
         builder.addImport(`import { Pagination } from '../components/Pagination';`);
     }
@@ -84,7 +84,7 @@ export const buildTableTemplate = (config: PluginConfig, module: ModuleConfig): 
 
     // 4. Methods / Logic
     builder.addMethod(`  // Define columns
-  const columns = useMemo<ColumnDef<{{Module}}, any>[]>(() => [
+  const columns = useMemo<ColumnDef<{{ModuleSingular}}, any>[]>(() => [
 ${columnSelection}
 ${columnDefinitions}
   ], []);
@@ -166,11 +166,11 @@ ${columnDefinitions}
 ${importsList}
 
 interface {{Module}}TableProps {
-    {{module}}: {{Module}}[];
+    {{module}}: {{ModuleSingular}}[];
     refreshing: boolean;${paginationProps}
 }
 
-const columnHelper = createColumnHelper<{{Module}}>();
+const columnHelper = createColumnHelper<{{ModuleSingular}}>();
 
 export const {{Module}}Table = ({
     {{module}},

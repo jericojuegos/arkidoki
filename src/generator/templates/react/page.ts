@@ -21,7 +21,8 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
     }
 
     builder.addImport(`import { {{Module}}Table } from './{{Module}}Table';`);
-    builder.addImport(`import type { {{Module}} } from './types';`);
+    // Singularized type import
+    builder.addImport(`import type { {{ModuleSingular}} } from './types';`);
 
     // 2. State & Hooks
     if (useReactQuery) {
@@ -60,7 +61,9 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
 
     } else {
         // Standard Fetch Logic
-        builder.addState('{{module}}', '[]', `{{Module}}[]`, 'set{{Module}}');
+        // Use lowercase plural for data, set[Plural] for setter
+        const setterName = `set${module.name.charAt(0).toUpperCase() + module.name.slice(1)}`;
+        builder.addState('{{module}}', '[]', `{{ModuleSingular}}[]`, setterName);
         builder.addState('isLoading', 'false', 'boolean');
 
         if (hasPagination) {
@@ -75,51 +78,53 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
         if (hasPagination) {
             const totalItemsLogic = needsTotalItems ? `            setTotalItems(response.total || 0);` : '';
             builder.addMethod(`    const fetch{{Module}} = useCallback(async (page: number = 1) => {
-            setIsLoading(true);
-            try {
-                const response = await {{module}}Api.getAll({ page });
-                set{{Module}}(response.data || []);
-                setTotalPages(response.pages || 1);
-                ${totalItemsLogic}
-            } catch (error) {
-                console.error('Error fetching {{module}}:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        }, []);`);
+        setIsLoading(true);
+        try {
+            const response = await {{module}}Api.getAll({ page });
+            ${setterName}(response.data || []);
+            setTotalPages(response.pages || 1);
+            ${totalItemsLogic}
+        } catch (error) {
+            console.error('Error fetching {{module}}:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);`);
 
             builder.addEffect(`    useEffect(() => {
-            fetch{{Module}}(currentPage);
-        }, [currentPage, fetch{{Module}}]);`);
+        fetch{{Module}}(currentPage);
+    }, [currentPage, fetch{{Module}}]);`);
 
             builder.addMethod(`    const onPageChange = (page: number) => setCurrentPage(page);`);
         } else {
             builder.addMethod(`    const fetch{{Module}} = useCallback(async () => {
-            setIsLoading(true);
-            try {
-                const response = await {{module}}Api.getAll();
-                set{{Module}}(response.data || []);
-            } catch (error) {
-                console.error('Error fetching {{module}}:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        }, []);`);
+        setIsLoading(true);
+        try {
+            const response = await {{module}}Api.getAll();
+            ${setterName}(response.data || []);
+        } catch (error) {
+            console.error('Error fetching {{module}}:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);`);
 
             builder.addEffect(`    useEffect(() => {
-            fetch{{Module}}();
-        }, [fetch{{Module}}]);`);
+        fetch{{Module}}();
+    }, [fetch{{Module}}]);`);
         }
     }
 
     // 4. JSX
     let tableProps = '';
+    const loadingPropName = 'refreshing'; // Using 'refreshing' to match the User's previous request for the table
 
     if (useReactQuery) {
+        const loadingValue = 'isLoading || isFetching';
         if (hasPagination) {
             tableProps = `
                 {{module}}={{{module}}}
-                isLoading={isLoading || isFetching}
+                ${loadingPropName}={${loadingValue}}
                 currentPage={currentPage}
                 totalPages={totalPages}
                 ${needsTotalItems ? 'totalItems={totalItems}' : ''}
@@ -127,16 +132,17 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
         } else {
             tableProps = `
                 {{module}}={{{module}}}
-                isLoading={isLoading || isFetching}`;
+                ${loadingPropName}={${loadingValue}}`;
         }
     } else {
+        const loadingValue = 'isLoading';
         tableProps = hasPagination ? `
                 {{module}}={{{module}}}
-                isLoading={isLoading}
+                ${loadingPropName}={${loadingValue}}
                 currentPage={currentPage}
                 totalPages={totalPages}
                 ${needsTotalItems ? 'totalItems={totalItems}' : ''}
-                onPageChange={onPageChange}` : `{{module}}={{{module}}} isLoading={isLoading}`;
+                onPageChange={onPageChange}` : `{{module}}={{{module}}} ${loadingPropName}={${loadingValue}}`;
     }
 
     builder.setJSX(`    return (
@@ -151,4 +157,3 @@ export const buildPageTemplate = (config: PluginConfig, module: ModuleConfig): s
     const content = builder.build('{{Module}}Page');
     return replacePlaceholders(content, config, module);
 };
-

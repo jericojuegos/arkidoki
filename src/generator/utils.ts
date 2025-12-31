@@ -16,8 +16,13 @@ export const replacePlaceholders = (template: string, config: PluginConfig, modu
 
     // Module replacements
     if (module) {
+        const singularName = module.name.endsWith('s') ? module.name.slice(0, -1) : module.name;
+        const singularSlug = module.slug.endsWith('s') ? module.slug.slice(0, -1) : module.slug;
+
         content = content.replace(/{{Module}}/g, module.name);
         content = content.replace(/{{module}}/g, module.slug);
+        content = content.replace(/{{ModuleSingular}}/g, singularName);
+        content = content.replace(/{{moduleSingular}}/g, singularSlug);
         content = content.replace(/{{MODULE_CONST}}/g, module.slug.toUpperCase());
 
         if (module.columns) {

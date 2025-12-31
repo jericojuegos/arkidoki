@@ -16,6 +16,7 @@ import {
     buildReactEntryTemplate,
     buildPageTemplate,
     buildTableTemplate,
+    buildTypesTemplate,
     REACT_FILTERS,
     PAGINATION_TEMPLATES,
     REACT_DETAILS_MODAL
@@ -199,6 +200,7 @@ export class TangibleStrategy implements GeneratorStrategy {
             );
 
             addFile('index.tsx', `${basePath}/index.tsx`, buildReactEntryTemplate(config, module), 'typescript');
+            addFile('types.ts', `${basePath}/types.ts`, buildTypesTemplate(config, module), 'typescript');
 
             // Add Module API Endpoint
             addFile(
