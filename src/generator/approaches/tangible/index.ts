@@ -21,7 +21,9 @@ import {
     buildTypesTemplate,
     REACT_FILTERS,
     PAGINATION_TEMPLATES,
-    REACT_DETAILS_MODAL
+    REACT_DETAILS_MODAL,
+    buildApiTemplate,
+    buildApiClientTemplate
 } from '../../templates/react/index';
 import { QUERY_CLIENT } from '../../templates/react/query-client';
 import { USE_QUERY_HOOK } from '../../templates/react/use-query';
@@ -192,6 +194,14 @@ export class TangibleStrategy implements GeneratorStrategy {
                 'typescript'
             );
         }
+
+        // 4.1.1 API Client Shared Utility
+        addFile(
+            'api-client.ts',
+            '/assets/src/utils/api-client.ts',
+            buildApiClientTemplate(config),
+            'typescript'
+        );
 
         // 4.2 Shared Providers (for Hybrid architecture)
         if (config.architecture === 'hybrid') {
@@ -700,6 +710,7 @@ export class TangibleStrategy implements GeneratorStrategy {
 
             addFile('index.tsx', `${basePath}/index.tsx`, buildReactEntryTemplate(config, module), 'typescript');
             addFile('types.ts', `${basePath}/types.ts`, buildTypesTemplate(config, module), 'typescript');
+            addFile('api.ts', `${basePath}/api.ts`, buildApiTemplate(config, module), 'typescript');
 
             // Add Module API Endpoint
             addFile(

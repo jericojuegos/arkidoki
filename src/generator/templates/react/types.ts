@@ -13,6 +13,12 @@ export type {{Module}}Response = {
     total: number;
     pages: number;
 };
+
+export type {{ModuleSingular}}Response = {
+    success: boolean;
+    data: {{ModuleSingular}};
+};
+
 `;
 
     return replacePlaceholders(template, config, module);
