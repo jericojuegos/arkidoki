@@ -252,40 +252,44 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                                     </select>
                                 </div>
 
-                                <h4>Table Schema</h4>
-                                <ul className="schema-list">
-                                    {m.columns.map(col => (
-                                        <li key={col.accessorKey}>
-                                            <span>{col.header} <span className="pill">{col.accessorKey}</span> <span className="pill-type">{col.type}</span></span>
-                                            <button onClick={() => handleRemoveColumn(m.slug, col.accessorKey)}>×</button>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <div className="add-col-form">
-                                    <input
-                                        placeholder="Header"
-                                        value={newColHeader}
-                                        onChange={e => setNewColHeader(e.target.value)}
-                                        style={{ width: '30%' }}
-                                    />
-                                    <input
-                                        placeholder="Accessor"
-                                        value={newColAccessor}
-                                        onChange={e => setNewColAccessor(e.target.value)}
-                                        style={{ width: '30%' }}
-                                    />
-                                    <select
-                                        value={newColType}
-                                        onChange={e => setNewColType(e.target.value as any)}
-                                        style={{ width: '25%' }}
-                                    >
-                                        <option value="text">Text</option>
-                                        <option value="date">Date</option>
-                                        <option value="status">Status</option>
-                                        <option value="boolean">Boolean</option>
-                                    </select>
-                                    <button onClick={() => handleAddColumn(m.slug)}>+</button>
-                                </div>
+                                {(m.storage === 'custom_table' || !m.storage) && (
+                                    <>
+                                        <h4>Table Schema</h4>
+                                        <ul className="schema-list">
+                                            {m.columns.map(col => (
+                                                <li key={col.accessorKey}>
+                                                    <span>{col.header} <span className="pill">{col.accessorKey}</span> <span className="pill-type">{col.type}</span></span>
+                                                    <button onClick={() => handleRemoveColumn(m.slug, col.accessorKey)}>×</button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <div className="add-col-form">
+                                            <input
+                                                placeholder="Header"
+                                                value={newColHeader}
+                                                onChange={e => setNewColHeader(e.target.value)}
+                                                style={{ width: '30%' }}
+                                            />
+                                            <input
+                                                placeholder="Accessor"
+                                                value={newColAccessor}
+                                                onChange={e => setNewColAccessor(e.target.value)}
+                                                style={{ width: '30%' }}
+                                            />
+                                            <select
+                                                value={newColType}
+                                                onChange={e => setNewColType(e.target.value as any)}
+                                                style={{ width: '25%' }}
+                                            >
+                                                <option value="text">Text</option>
+                                                <option value="date">Date</option>
+                                                <option value="status">Status</option>
+                                                <option value="boolean">Boolean</option>
+                                            </select>
+                                            <button onClick={() => handleAddColumn(m.slug)}>+</button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>

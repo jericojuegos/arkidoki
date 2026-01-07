@@ -8,6 +8,7 @@ import {
     ENQUEUE_SCRIPT_PHP,
     MODULE_ADMIN_CLASS,
     CORE_CLASS_PHP,
+    DATABASE_CLASS_PHP,
     ABSTRACT_ENDPOINT_PHP,
     SETTINGS_ENDPOINT_PHP,
     MODULE_ENDPOINT_PHP,
@@ -186,6 +187,62 @@ export class TangibleStrategy implements GeneratorStrategy {
                 '/assets/src/app/providers.tsx',
                 APP_PROVIDERS,
                 'typescript'
+            );
+        }
+
+        // 4.3 Database Class (for custom tables)
+        const customTableModules = config.modules.filter(m => !m.storage || m.storage === 'custom_table');
+
+        if (customTableModules.length > 0) {
+            const tableGetters = customTableModules.map(m => {
+                const tableName = `${config.projectSlug.replace(/-/g, '_')}_${m.slug.replace(/-/g, '_')}`;
+                return `/**
+	 * Get ${m.name.toLowerCase()} table name.
+	 *
+	 * @return string
+	 */
+	public function get_${m.slug.replace(/-/g, '_')}_table() {
+		global $wpdb;
+		return $wpdb->prefix . '${tableName}';
+	}`;
+            }).join('\n\n    ');
+
+            const createTablesSql = customTableModules.map(m => {
+                const tableName = `${config.projectSlug.replace(/-/g, '_')}_${m.slug.replace(/-/g, '_')}`;
+
+                // Dynamic columns
+                const columnsSql = m.columns.map(col => {
+                    let type = 'VARCHAR(255)';
+                    if (col.type === 'date') type = 'DATETIME';
+                    if (col.type === 'boolean') type = 'TINYINT(1)';
+                    if (col.accessorKey === 'id') return 'id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY';
+                    return `${col.accessorKey} ${type}`;
+                }).join(',\n            ');
+
+                return `// ${m.name} table.
+		$${m.slug.replace(/-/g, '_')}_table = $wpdb->prefix . '${tableName}';
+	    $${m.slug.replace(/-/g, '_')}_sql = "CREATE TABLE IF NOT EXISTS {$${m.slug.replace(/-/g, '_')}_table} (
+            ${columnsSql},
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) {$charset_collate};";
+
+		dbDelta( $${m.slug.replace(/-/g, '_')}_sql );`;
+            }).join('\n\n        ');
+
+            const dropTablesSql = customTableModules.map(m => {
+                const tableName = `${config.projectSlug.replace(/-/g, '_')}_${m.slug.replace(/-/g, '_')}`;
+                return `// ${m.name} table.
+		$${m.slug.replace(/-/g, '_')}_table = $wpdb->prefix . '${tableName}';
+		$wpdb->query( "DROP TABLE IF EXISTS {$${m.slug.replace(/-/g, '_')}_table}" );`;
+            }).join('\n\n        ');
+
+            addFile(
+                'Database.php',
+                '/includes/Core/Database.php',
+                replacePlaceholders(DATABASE_CLASS_PHP, config)
+                    .replace('// {{DATABASE_TABLE_GETTERS}}', tableGetters)
+                    .replace('// {{DATABASE_CREATE_TABLES}}', createTablesSql)
+                    .replace('// {{DATABASE_DROP_TABLES}}', dropTablesSql)
             );
         }
 

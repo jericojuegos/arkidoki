@@ -785,3 +785,76 @@ class {{Module}} {
 }
 `;
 
+export const DATABASE_CLASS_PHP = `<?php declare( strict_types=1 );
+/**
+ * Database management class.
+ *
+ * @package Tangible\\{{PROJECT_NAMESPACE}}
+ */
+
+namespace Tangible\\{{PROJECT_NAMESPACE}}\\Core;
+
+use Tangible\\{{PROJECT_NAMESPACE}}\\Plugin;
+
+/**
+ * Database class.
+ */
+class Database {
+
+	/**
+	 * Instance.
+	 *
+	 * @var Database
+	 */
+	private static $instance = null;
+
+	/**
+	 * Get instance.
+	 *
+	 * @return Database
+	 */
+	public static function instance() {
+		if ( is_null( self::$instance ) ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	/**
+	 * Constructor.
+	 */
+	private function __construct() {
+		// Constructor logic if needed.
+	}
+
+    // {{DATABASE_TABLE_GETTERS}}
+
+    /**
+	 * Create database tables.
+	 */
+	public function create_tables() {
+		global $wpdb;
+
+		$charset_collate = $wpdb->get_charset_collate();
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+        // {{DATABASE_CREATE_TABLES}}
+
+		// Update database version.
+		update_option( '{{PLUGIN_SLUG}}_db_version', {{PROJECT_CONST}}_VERSION );
+	}
+
+    /**
+	 * Drop database tables.
+	 */
+	public function drop_tables() {
+		global $wpdb;
+
+        // {{DATABASE_DROP_TABLES}}
+
+		delete_option( '{{PLUGIN_SLUG}}_db_version' );
+	}
+}
+`;
+
