@@ -29,7 +29,10 @@ export interface RuntimeStrategyConfig {
 export type StorageType =
   | 'object_cache'
   | 'post_meta'
-  | 'wp_options'
+  | 'wp_options' // Keep for backward compatibility (maps to array)
+  | 'wp_options_array'
+  | 'wp_options_single'
+  | 'wp_options_per_item'
   | 'user_meta'
   | 'term_meta'
   | 'transient'

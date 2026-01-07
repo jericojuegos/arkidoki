@@ -243,7 +243,9 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
                                     >
                                         <option value="custom_table">Custom Table (Default)</option>
                                         <option value="object_cache">Object Cache (Redis/Memcached)</option>
-                                        <option value="wp_options">wp_options</option>
+                                        <option value="wp_options_array">wp_options (Associative Array)</option>
+                                        <option value="wp_options_single">wp_options (Single Option)</option>
+                                        <option value="wp_options_per_item">wp_options (Per Item / Hybrid)</option>
                                         <option value="post_meta">Post Meta</option>
                                         <option value="user_meta">User Meta</option>
                                         <option value="term_meta">Term Meta</option>

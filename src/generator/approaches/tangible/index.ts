@@ -263,7 +263,7 @@ export class TangibleStrategy implements GeneratorStrategy {
             let coreAdditionalHelpers = '';
             const storage = module.storage || 'custom_table';
 
-            if (storage === 'wp_options') {
+            if (storage === 'wp_options' || storage === 'wp_options_array') {
                 coreConstants = `\t/**
 	 * Option name for storing {{module}} items.
 	 */
@@ -297,6 +297,64 @@ export class TangibleStrategy implements GeneratorStrategy {
 		do_action( '{{PLUGIN_SLUG}}_{{module}}_created', $id, $item );
 
 		return $id;
+	}
+
+    /**
+	 * Update an existing item.
+	 *
+	 * @param string $id   Item ID.
+	 * @param array  $args Fields to update.
+	 * @return bool|WP_Error True on success, error on failure.
+	 */
+	public function update( string $id, array $args ) {
+		$items = $this->get_all_raw();
+
+		if ( ! isset( $items[ $id ] ) ) {
+			return new WP_Error( 'not_found', __( 'Item not found.', '{{PLUGIN_SLUG}}' ) );
+		}
+
+        $item = array_merge( $items[ $id ], $args );
+		$item['modified'] = current_time( 'mysql' );
+
+		$items[ $id ] = $item;
+
+		update_option( self::OPTION_NAME, $items, false );
+		do_action( '{{PLUGIN_SLUG}}_{{module}}_updated', $id, $item );
+
+		return true;
+	}
+
+	/**
+	 * Delete an item.
+	 *
+	 * @param string $id Item ID.
+	 * @return bool True on success, false if not found.
+	 */
+	public function delete( string $id ): bool {
+		$items = $this->get_all_raw();
+
+		if ( ! isset( $items[ $id ] ) ) {
+			return false;
+		}
+
+		$item = $items[ $id ];
+		unset( $items[ $id ] );
+
+		update_option( self::OPTION_NAME, $items, false );
+		do_action( '{{PLUGIN_SLUG}}_{{module}}_deleted', $id, $item );
+
+		return true;
+	}
+
+	/**
+	 * Get a single item by ID.
+	 *
+	 * @param string $id Item ID.
+	 * @return array|null Item data or null if not found.
+	 */
+	public function get( string $id ) {
+		$items = $this->get_all_raw();
+		return $items[ $id ] ?? null;
 	}
 
     /**
@@ -336,6 +394,111 @@ export class TangibleStrategy implements GeneratorStrategy {
         return '';
     }`;
 
+            } else if (storage === 'wp_options_single') {
+                coreConstants = `\t/**
+	 * Option name for storing {{module}} data.
+	 */
+	const OPTION_NAME = '{{PLUGIN_SLUG}}_{{module}}_data';`;
+
+                coreMethods = `/**
+     * Update data.
+     */
+    public function update( array $args ) {
+        $current = $this->get_all_raw();
+        $updated = wp_parse_args( $args, $current );
+        update_option( self::OPTION_NAME, $updated, false );
+        return true;
+    }
+
+    public function get_all() {
+        return [ $this->get_all_raw() ]; 
+    }
+    
+    public function get_all_raw() {
+        return get_option( self::OPTION_NAME, [] );
+    }
+
+    public function create( array $args ) {
+        return $this->update( $args );
+    }
+    
+    public function get( string $id ) {
+        return $this->get_all_raw();
+    }
+    
+    public function delete( string $id ): bool {
+        return delete_option( self::OPTION_NAME );
+    }`;
+                coreAdditionalHelpers = `
+    public function set_value( string $name, $value ) {}
+    public function get_value( string $name ) { return ''; }`;
+
+            } else if (storage === 'wp_options_per_item') {
+                coreConstants = `\t/**
+	 * Option name for storing {{module}} index.
+	 */
+	const INDEX_OPTION = '{{PLUGIN_SLUG}}_{{module}}_index';
+    const ITEM_PREFIX = '{{PLUGIN_SLUG}}_{{module}}_item_';`;
+
+                coreMethods = `
+    public function create( array $args ) {
+        $id = uniqid( '{{module}}_' );
+        $item = array_merge( [ 'id' => $id, 'created' => current_time('mysql') ], $args );
+        update_option( self::ITEM_PREFIX . $id, $item, false );
+        
+        $index = get_option( self::INDEX_OPTION, [] );
+        $index[] = $id;
+        update_option( self::INDEX_OPTION, $index, false ); 
+        
+        do_action( '{{PLUGIN_SLUG}}_{{module}}_created', $id, $item );
+        return $id;
+    }
+
+    public function update( string $id, array $args ) {
+        $item = $this->get( $id );
+        if ( ! $item ) return new WP_Error( 'not_found', 'Item not found' );
+
+        $item = array_merge( $item, $args );
+        $item['modified'] = current_time('mysql');
+        
+        update_option( self::ITEM_PREFIX . $id, $item, false );
+        do_action( '{{PLUGIN_SLUG}}_{{module}}_updated', $id, $item );
+        return true;
+    }
+
+    public function delete( string $id ): bool {
+        $item = $this->get( $id );
+        if ( ! $item ) return false;
+
+        delete_option( self::ITEM_PREFIX . $id );
+        
+        $index = get_option( self::INDEX_OPTION, [] );
+        $index = array_diff( $index, [ $id ] );
+        update_option( self::INDEX_OPTION, $index, false );
+
+        do_action( '{{PLUGIN_SLUG}}_{{module}}_deleted', $id, $item );
+        return true;
+    }
+
+    public function get( string $id ) {
+        $item = get_option( self::ITEM_PREFIX . $id );
+        return $item ?: null;
+    }
+
+    public function get_all() {
+        $index = get_option( self::INDEX_OPTION, [] );
+        $items = [];
+        foreach( $index as $id ) {
+            $item = $this->get( $id );
+            if ($item) $items[] = $item;
+        }
+        return $items;
+    }`;
+
+                coreAdditionalHelpers = `
+    public function set_value( string $name, $value ) {}
+    public function get_value( string $name ) { return ''; }`;
+
             } else if (storage === 'custom_table') {
                 // Custom Table Logic (Using Database class)
                 coreConstants = '';
@@ -351,9 +514,7 @@ export class TangibleStrategy implements GeneratorStrategy {
 
 		$defaults = array(
 			'created_at'    => current_time( 'mysql' ),
-            // Defaults from columns
 		);
-
 		$args = wp_parse_args( $args, $defaults );
 
 		$table = Database::instance()->get_{{module}}_table();
@@ -363,9 +524,42 @@ export class TangibleStrategy implements GeneratorStrategy {
 			do_action( '{{PLUGIN_SLUG}}_{{module}}_created', $wpdb->insert_id, $args );
 			return $wpdb->insert_id;
 		}
-
 		return false;
 	}
+
+    public function update( $id, $args ) {
+        global $wpdb;
+        $table = Database::instance()->get_{{module}}_table();
+        
+        $args['updated_at'] = current_time( 'mysql' ); 
+
+        $result = $wpdb->update( $table, $args, [ 'id' => $id ] );
+        
+        if ( $result !== false ) {
+            do_action( '{{PLUGIN_SLUG}}_{{module}}_updated', $id, $args );
+            return true;
+        }
+        return false;
+    }
+
+    public function delete( $id ) {
+        global $wpdb;
+        $table = Database::instance()->get_{{module}}_table();
+        
+        $result = $wpdb->delete( $table, [ 'id' => $id ] );
+        
+        if ( $result ) {
+            do_action( '{{PLUGIN_SLUG}}_{{module}}_deleted', $id );
+            return true;
+        }
+        return false;
+    }
+
+    public function get( $id ) {
+        global $wpdb;
+        $table = Database::instance()->get_{{module}}_table();
+        return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ), ARRAY_A );
+    }
 
     /**
      * Get all items.
@@ -414,6 +608,50 @@ export class TangibleStrategy implements GeneratorStrategy {
 		do_action( '{{PLUGIN_SLUG}}_{{module}}_created', $post_id );
 		return $post_id;
     }
+
+    public function update( $id, $args ) {
+        $post_args = [];
+        if (isset($args['name'])) $post_args['post_title'] = $args['name'];
+        if (isset($args['status'])) $post_args['post_status'] = $args['status'];
+        
+        if (!empty($post_args)) {
+            $post_args['ID'] = $id;
+            wp_update_post($post_args);
+        }
+
+        foreach($args as $key => $value) {
+            if ($key === 'name' || $key === 'status') continue;
+            update_post_meta( $id, self::META_PREFIX . $key, $value );
+        }
+        
+        do_action( '{{PLUGIN_SLUG}}_{{module}}_updated', $id, $args );
+        return true;
+    }
+
+    public function delete( $id ) {
+        $result = wp_delete_post( $id, true );
+        if ($result) {
+             do_action( '{{PLUGIN_SLUG}}_{{module}}_deleted', $id );
+             return true;
+        }
+        return false;
+    }
+
+    public function get( $id ) {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== self::POST_TYPE) return null;
+        
+        $meta = get_post_meta($id);
+        $data = ['id' => $post->ID, 'name' => $post->post_title, 'status' => $post->post_status];
+        
+        foreach($meta as $k => $v) {
+            if (strpos($k, self::META_PREFIX) === 0) {
+                $key = str_replace(self::META_PREFIX, '', $k);
+                $data[$key] = $v[0];
+            }
+        }
+        return $data;
+    }
     
     public function get_all() {
         $posts = get_posts([
@@ -423,16 +661,7 @@ export class TangibleStrategy implements GeneratorStrategy {
         ]);
         
         return array_map(function($post) {
-            $meta = get_post_meta($post->ID);
-            // Flatten meta
-            $data = ['id' => $post->ID, 'name' => $post->post_title];
-            foreach($meta as $k => $v) {
-                if (strpos($k, self::META_PREFIX) === 0) {
-                    $key = str_replace(self::META_PREFIX, '', $k);
-                    $data[$key] = $v[0];
-                }
-            }
-            return $data;
+            return $this->get($post->ID);
         }, $posts);
     }
     `;
