@@ -207,9 +207,8 @@ class {{Module}} {
     public function render() : void {
         $this->enqueue_scripts();
         ?>
-        <div class="{{PLUGIN_SLUG}}-{{module}}-wrap">
-            <!-- React will mount here -->
-            <div id="{{PLUGIN_SLUG}}-{{module}}-root"></div>
+        <div id="{{PLUGIN_SLUG}}-{{module}}-root">
+            <div class="{{PLUGIN_SLUG}}-{{module}}-loading">Loading {{module}}..</div>
         </div>
         <?php
     }
