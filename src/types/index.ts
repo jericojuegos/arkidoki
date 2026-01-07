@@ -26,9 +26,20 @@ export interface RuntimeStrategyConfig {
   outputStyle: 'jsx' | 'createElement';
 }
 
+export type StorageType =
+  | 'object_cache'
+  | 'post_meta'
+  | 'wp_options'
+  | 'user_meta'
+  | 'term_meta'
+  | 'transient'
+  | 'custom_table'
+  | 'json_file';
+
 export interface ModuleConfig {
   name: string; // "Logger", "Sync"
   slug: string; // "logger", "sync"
+  storage?: StorageType; // Added
   columns: ColumnConfig[];
 }
 

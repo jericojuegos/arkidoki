@@ -229,6 +229,29 @@ export const InputSection: React.FC<Props> = ({ config, onChange }) => {
 
                         {expandedModule === m.slug && (
                             <div className="module-schema-editor">
+                                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                    <label style={{ fontSize: '0.85rem' }}>Data Storage</label>
+                                    <select
+                                        value={m.storage || 'custom_table'}
+                                        onChange={(e) => {
+                                            const updatedModules = config.modules.map(mod =>
+                                                mod.slug === m.slug ? { ...mod, storage: e.target.value as any } : mod
+                                            );
+                                            onChange({ ...config, modules: updatedModules });
+                                        }}
+                                        style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}
+                                    >
+                                        <option value="custom_table">Custom Table (Default)</option>
+                                        <option value="object_cache">Object Cache (Redis/Memcached)</option>
+                                        <option value="wp_options">wp_options</option>
+                                        <option value="post_meta">Post Meta</option>
+                                        <option value="user_meta">User Meta</option>
+                                        <option value="term_meta">Term Meta</option>
+                                        <option value="transient">Transients</option>
+                                        <option value="json_file">JSON Files</option>
+                                    </select>
+                                </div>
+
                                 <h4>Table Schema</h4>
                                 <ul className="schema-list">
                                     {m.columns.map(col => (
