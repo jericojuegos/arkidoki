@@ -455,14 +455,11 @@ use Tangible\\{{PROJECT_NAMESPACE}}\\Admin\\{{Module}} as Admin{{Module}};
 use WP_Error;
 
 /**
- * {{Module}} class - manages {{module}} items using wp_options storage.
+ * {{Module}} class - manages {{module}} items.
  */
 class {{Module}} {
 
-	/**
-	 * Option name for storing {{module}} items.
-	 */
-	const OPTION_NAME = '{{PLUGIN_SLUG}}_{{module}}';
+    // {{CONSTANTS}}
 
 	/**
 	 * Singleton instance.
@@ -494,180 +491,12 @@ class {{Module}} {
         $this->register_fields();
     }
 
-	/**
-	 * Create a new {{module}} item.
-	 *
-	 * @param array $args Connection arguments.
-	 * @return string|WP_Error Item ID or error.
-	 */
-	public function create( array $args ) {
-		$defaults = [
-			'name'      => '',
-			'url'       => '',
-			'api_key'   => '',
-			'type'      => 'destination',
-			'auto_sync' => true,
-			'status'    => 'disconnected',
-		];
-
-		$args = wp_parse_args( $args, $defaults );
-
-		// Validation.
-		if ( empty( $args['name'] ) ) {
-			return new WP_Error( 'invalid_data', __( 'Missing required fields.', '{{PLUGIN_SLUG}}' ) );
-		}
-
-		// Generate unique ID.
-		$id = $this->generate_id();
-
-		$items = $this->get_all_raw();
-
-		$item = [
-			'id'        => $id,
-			'name'      => sanitize_text_field( $args['name'] ),
-            // Placeholder for other fields
-			'created'   => current_time( 'mysql' ),
-			'modified'  => current_time( 'mysql' ),
-		];
-        
-        // Merge specific args for Connections if matches
-        if (isset($args['url'])) $item['url'] = esc_url_raw($args['url']);
-        if (isset($args['api_key'])) $item['api_key'] = sanitize_text_field($args['api_key']);
-
-		$items[ $id ] = $item;
-
-		update_option( self::OPTION_NAME, $items, false );
-
-		do_action( '{{PLUGIN_SLUG}}_{{module}}_created', $id, $item );
-
-		return $id;
-	}
-
-	/**
-	 * Update an existing {{module}} item.
-	 *
-	 * @param string $id   Item ID.
-	 * @param array  $args Fields to update.
-	 * @return bool|WP_Error True on success, error on failure.
-	 */
-	public function update( string $id, array $args ) {
-		$items = $this->get_all_raw();
-
-		if ( ! isset( $items[ $id ] ) ) {
-			return new WP_Error( 'not_found', __( 'Item not found.', '{{PLUGIN_SLUG}}' ) );
-		}
-
-		$item = $items[ $id ];
-
-		if ( isset( $args['name'] ) ) {
-			$item['name'] = sanitize_text_field( $args['name'] );
-		}
-        
-        // Generic field update placeholder
-        foreach($args as $key => $value) {
-            if (in_array($key, ['url', 'api_key', 'type', 'auto_sync', 'status'])) {
-                 $item[$key] = sanitize_text_field($value); // Simplified sanitization
-            }
-        }
-
-		$item['modified'] = current_time( 'mysql' );
-
-		$items[ $id ] = $item;
-
-		update_option( self::OPTION_NAME, $items, false );
-
-		do_action( '{{PLUGIN_SLUG}}_{{module}}_updated', $id, $item );
-
-		return true;
-	}
-
-	/**
-	 * Delete a {{module}} item.
-	 *
-	 * @param string $id Item ID.
-	 * @return bool True on success, false if not found.
-	 */
-	public function delete( string $id ): bool {
-		$items = $this->get_all_raw();
-
-		if ( ! isset( $items[ $id ] ) ) {
-			return false;
-		}
-
-		$item = $items[ $id ];
-
-		unset( $items[ $id ] );
-
-		update_option( self::OPTION_NAME, $items, false );
-
-		do_action( '{{PLUGIN_SLUG}}_{{module}}_deleted', $id, $item );
-
-		return true;
-	}
-
-	/**
-	 * Get a single {{module}} item by ID.
-	 *
-	 * @param string $id Item ID.
-	 * @return array|null Item data or null if not found.
-	 */
-	public function get( string $id ) {
-		$items = $this->get_all_raw();
-
-		if ( ! isset( $items[ $id ] ) ) {
-			return null;
-		}
-
-		return $items[ $id ];
-	}
-
-	/**
-	 * Get all {{module}} items as array.
-	 *
-	 * @return array List of items.
-	 */
-	public function get_all(): array {
-		$items = $this->get_all_raw();
-		return array_values( $items );
-	}
-
-	/**
-	 * Get all {{module}} items with IDs as keys.
-	 *
-	 * @return array Items keyed by ID.
-	 */
-	private function get_all_raw(): array {
-		$items = get_option( self::OPTION_NAME, [] );
-
-		if ( ! is_array( $items ) ) {
-			return [];
-		}
-
-		return $items;
-	}
-
-	/**
-	 * Generate a unique ID.
-	 *
-	 * @return string Unique ID.
-	 */
-	private function generate_id(): string {
-		$items = $this->get_all_raw();
-
-		do {
-			$id = 'conn_' . wp_generate_password( 12, false, false );
-		} while ( isset( $items[ $id ] ) );
-
-		return $id;
-	}
+    // {{METHODS}}
 
     // Tangible Fields Integration
 
     private string $key = '{{module}}'; // Default key
     private array $fields_config = [];
-    private array $local_only_settings = [
-        // Add any local-only settings here if needed
-    ];
 
     private function register_fields() : void {
         $fields = tangible_fields();
@@ -751,37 +580,8 @@ class {{Module}} {
             'title'  => __( 'Saved.', '{{PLUGIN_SLUG}}' )
         ];
     }
-
-    public function set_value( string $name, $value ) : void {
-        if ($name === 'repeater_tab') {
-            $data = is_string($value) ? json_decode(stripslashes($value), true) : $value;
-            
-            if (is_array($data)) {
-                 $formatted = [];
-                 foreach ($data as $item_data) {
-                     if (empty($item_data['id'])) {
-                         $item_data['id'] = $this->generate_id();
-                     }
-                     // Basic defaults
-                     $defaults = [
-                        'status' => 'draft' 
-                     ];
-                     $item_data = wp_parse_args( $item_data, $defaults );
-                     
-                     $formatted[ $item_data['id'] ] = $item_data;
-                 }
-                 
-                 update_option( self::OPTION_NAME, $formatted, false );
-            }
-        }
-    }
-
-    public function get_value( string $name ) {
-        if ($name === 'repeater_tab') {
-            return $this->get_all_raw();
-        }
-        return '';
-    }
+    
+    // {{ADDITIONAL_HELPERS}}
 }
 `;
 

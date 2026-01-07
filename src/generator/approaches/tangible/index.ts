@@ -258,10 +258,202 @@ export class TangibleStrategy implements GeneratorStrategy {
             );
 
             // Add Module Core Class
+            let coreConstants = '';
+            let coreMethods = '';
+            let coreAdditionalHelpers = '';
+            const storage = module.storage || 'custom_table';
+
+            if (storage === 'wp_options') {
+                coreConstants = `\t/**
+	 * Option name for storing {{module}} items.
+	 */
+	const OPTION_NAME = '{{PLUGIN_SLUG}}_{{module}}';`;
+
+                coreMethods = `
+    /**
+	 * Create a new {{module}} item.
+	 *
+	 * @param array $args Arguments.
+	 * @return string|WP_Error Item ID or error.
+	 */
+	public function create( array $args ) {
+		$defaults = [
+			'name'      => '',
+            // Add defaults based on columns
+			'status'    => 'draft',
+		];
+
+		$args = wp_parse_args( $args, $defaults );
+
+		// Generate unique ID.
+		$id = $this->generate_id();
+
+		$items = $this->get_all_raw();
+
+		$item = array_merge( [ 'id' => $id, 'created' => current_time('mysql') ], $args );
+		$items[ $id ] = $item;
+
+		update_option( self::OPTION_NAME, $items, false );
+		do_action( '{{PLUGIN_SLUG}}_{{module}}_created', $id, $item );
+
+		return $id;
+	}
+
+    /**
+	 * Get all items.
+	 * @return array
+	 */
+	public function get_all(): array {
+		return array_values( $this->get_all_raw() );
+	}
+
+    private function get_all_raw(): array {
+		$items = get_option( self::OPTION_NAME, [] );
+		return is_array( $items ) ? $items : [];
+	}
+
+    private function generate_id(): string {
+		return uniqid( '{{module}}_' );
+	}`;
+
+                coreAdditionalHelpers = `
+    public function set_value( string $name, $value ) : void {
+        if ($name === 'repeater_tab') {
+            $data = is_string($value) ? json_decode(stripslashes($value), true) : $value;
+            if (is_array($data)) {
+                 $formatted = [];
+                 foreach ($data as $item_data) {
+                     if (empty($item_data['id'])) $item_data['id'] = $this->generate_id();
+                     $formatted[ $item_data['id'] ] = $item_data;
+                 }
+                 update_option( self::OPTION_NAME, $formatted, false );
+             }
+        }
+    }
+
+    public function get_value( string $name ) {
+        if ($name === 'repeater_tab') return $this->get_all_raw();
+        return '';
+    }`;
+
+            } else if (storage === 'custom_table') {
+                // Custom Table Logic (Using Database class)
+                coreConstants = '';
+                coreMethods = `
+	/**
+	 * Create/Log a {{module}} item.
+	 *
+	 * @param array $args Arguments.
+	 * @return int|false ID or false.
+	 */
+	public function create( $args ) {
+		global $wpdb;
+
+		$defaults = array(
+			'created_at'    => current_time( 'mysql' ),
+            // Defaults from columns
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
+		$table = Database::instance()->get_{{module}}_table();
+		$result = $wpdb->insert( $table, $args );
+
+		if ( $result ) {
+			do_action( '{{PLUGIN_SLUG}}_{{module}}_created', $wpdb->insert_id, $args );
+			return $wpdb->insert_id;
+		}
+
+		return false;
+	}
+
+    /**
+     * Get all items.
+     */
+    public function get_all() {
+        global $wpdb;
+        $table = Database::instance()->get_{{module}}_table();
+        return $wpdb->get_results( "SELECT * FROM {$table} ORDER BY created_at DESC", ARRAY_A );
+    }`;
+
+                coreAdditionalHelpers = `
+    public function set_value( string $name, $value ) : void {
+        // Custom Table generic setter if needed for fields integration
+    }
+
+    public function get_value( string $name ) {
+        return '';
+    }`;
+
+            } else if (storage === 'post_meta') {
+                coreConstants = `\tconst POST_TYPE = '{{PLUGIN_SLUG}}_{{module}}';\n\tconst META_PREFIX = '_{{PLUGIN_SLUG}}_';`;
+                coreMethods = `
+    /**
+     * Create item (Post).
+     */
+    public function create( array $args ) {
+        $defaults = [
+			'name'      => '',
+            'status'    => 'publish'
+		];
+		$args = wp_parse_args( $args, $defaults );
+
+		$post_id = wp_insert_post( [
+			'post_type'   => self::POST_TYPE,
+			'post_title'  => sanitize_text_field( $args['name'] ),
+			'post_status' => $args['status'],
+		] );
+
+		if ( is_wp_error( $post_id ) ) return $post_id;
+
+        foreach($args as $key => $value) {
+            if ($key === 'name' || $key === 'status') continue;
+            update_post_meta( $post_id, self::META_PREFIX . $key, $value );
+        }
+
+		do_action( '{{PLUGIN_SLUG}}_{{module}}_created', $post_id );
+		return $post_id;
+    }
+    
+    public function get_all() {
+        $posts = get_posts([
+            'post_type' => self::POST_TYPE,
+            'numberposts' => -1,
+            'post_status' => 'any'
+        ]);
+        
+        return array_map(function($post) {
+            $meta = get_post_meta($post->ID);
+            // Flatten meta
+            $data = ['id' => $post->ID, 'name' => $post->post_title];
+            foreach($meta as $k => $v) {
+                if (strpos($k, self::META_PREFIX) === 0) {
+                    $key = str_replace(self::META_PREFIX, '', $k);
+                    $data[$key] = $v[0];
+                }
+            }
+            return $data;
+        }, $posts);
+    }
+    `;
+                coreAdditionalHelpers = `
+    public function set_value( string $name, $value ) : void {
+        // Post Meta setter logic
+    }
+    public function get_value( string $name ) {
+        return '';
+    }`;
+            }
+
+            let coreContent = replacePlaceholders(CORE_CLASS_PHP, config, module);
+            coreContent = coreContent.replace('// {{CONSTANTS}}', replacePlaceholders(coreConstants, config, module));
+            coreContent = coreContent.replace('// {{METHODS}}', replacePlaceholders(coreMethods, config, module));
+            coreContent = coreContent.replace('// {{ADDITIONAL_HELPERS}}', replacePlaceholders(coreAdditionalHelpers, config, module));
+
             addFile(
                 `${module.name}.php`,
                 `/includes/Core/${module.name}.php`,
-                replacePlaceholders(CORE_CLASS_PHP, config, module)
+                coreContent
             );
 
             addFile('index.tsx', `${basePath}/index.tsx`, buildReactEntryTemplate(config, module), 'typescript');
@@ -317,4 +509,5 @@ export class TangibleStrategy implements GeneratorStrategy {
         return files;
     }
 }
+
 
