@@ -53,7 +53,7 @@ class Plugin {
   }
 
   public function load_includes() {
-    include_once __DIR__ . '/includes/admin/Settings.php';
+    include_once __DIR__ . '/includes/Admin/Settings.php';
     $this->settings = new \\Tangible\\{{PROJECT_NAMESPACE}}\\Admin\\Settings(self::$plugin);
 
     // REST API
@@ -72,93 +72,66 @@ export const SETTINGS_PHP = `<?php declare(strict_types=1);
 
 namespace Tangible\\{{PROJECT_NAMESPACE}}\\Admin;
 
-if ( ! defined( 'ABSPATH' ) ) exit;
+defined('ABSPATH') or die();
 
 use Tangible\\{{PROJECT_NAMESPACE}}\\Plugin;
-use tangible\\framework;
 
 class Settings {
-    
+    // {{MODULE_PROPERTIES}}
+
     public function __construct() {
-      $this->register_settings();
+        // {{MODULE_INSTANTIATIONS}}
+
+        add_action( 'rest_api_init', [ $this, 'register_settings_endpoints' ] );
     }
-    
-    public function register_settings() {
-      \\tangible\\framework\\register_plugin_settings(Plugin::$plugin, [
-        'css' => Plugin::$plugin->assets_url . '/build/admin.min.css',
-        'title_callback' => function() {
-            ?>
-            <img class="plugin-logo"
-                src="<?= Plugin::$plugin->assets_url ?>/images/tangible-logo.png"
-                alt="Test Logo"
-                width="40"
-            >
-            <?= Plugin::$plugin->title ?>
-            <?php
-        },
-        'tabs' => [
-            'welcome' => [
-                'title' => 'Welcome',
-                'callback' => function() {
-                  ?>
-                    Hello, world.
 
-                    <ul>
-                      <li>Plugin: <?php echo Plugin::$plugin->title; ?></li>
-                      <li>Version: <?php echo Plugin::$plugin->version; ?></li>
-                      <li>Assets URL: <?php echo Plugin::$plugin->assets_url; ?></li>                  
-                    </ul>
+    /**
+     * Register endpoints.
+     */
+    public function register_settings_endpoints() : void {
+        // require_once __DIR__ . '/endpoints/index.php'; // Example
+    }
 
-                  <?php
-                }
-            ],
-            'features' => [
-                'title' => 'Features',
-                'callback' => function() {
-                    framework\\render_features_settings_page( Plugin::$plugin );
-                }
-            ],
-            // {{MODULE_TABS_REGISTRATION}}
-        ],
-        'features' => [
+    /**
+     * @see https://docs.tangible.one/modules/plugin-framework/plugin-settings/
+     */
+    public function register_settings_pages() : void {
+        \\tangible\\framework\\register_plugin_settings(
+            Plugin::$plugin, 
             [
-                'name' => 'example',
-                'title' => 'First feature',
-                'entry_file' => __DIR__ . '/../features/example.php'
-            ],
-            [
-                'name' => 'example_2',
-                'title' => 'Second feature',
-                'entry_file' => __DIR__ . '/../features/example-2.php',
-            ],
-        ],
-      ]);
+                'title_callback' => function() {
+                    ?>
+                    <img class="plugin-logo"
+                        src="<?= Plugin::$plugin->assets_url ?>/images/tangible-logo.png"
+                        alt="Logo"
+                        width="40"
+                    >
+                    <?= Plugin::$plugin->title ?>
+                    <?php
+                },
+                'css'  => Plugin::$plugin->assets_url . '/build/admin.min.css',
+                'js'   => Plugin::$plugin->assets_url . '/build/admin.min.js',
+                'tabs' => [
+                    // {{MODULE_TABS}}
+                ]
+            ] 
+        );
     }
-    
-    public function register_admin_notice() {
-        $welcome_notice_key = Plugin::$plugin->setting_prefix . '_welcome_notice';
 
-        if (framework\\is_admin_notice_dismissed($welcome_notice_key)) {
-            return;
-        }
-
-        if (isset($_GET['dismiss_admin_notice'])) {
-            framework\\dismiss_admin_notice( $welcome_notice_key );
-            return;
-        }
-
-        ?>
-        <div class="notice notice-info is-dismissible"
-            data-tangible-admin-notice="<?php echo $welcome_notice_key; ?>"
-        >
-            <p>Welcome to <b><?php echo Plugin::$plugin->title; ?></b>. Please see the <a href="<?php
-                $url = (is_multisite() ? 'settings.php' : 'options-general.php') . "?page=" . Plugin::$plugin->name . "-settings&dismiss_admin_notice=true";
-                echo esc_attr($url);
-            ?>">plugin settings page</a> to get started.</p>
-        </div>
-        <?php
+    public function get_current_page_key( string $context ) {
+        $items = get_option( '{{PLUGIN_SLUG}}_' . $context, false );
+        if( ! $items || count($items) === 0 ) return false;
+        return array_keys($items)[0];
     }
-    
+
+    public function display_notice( array $notice ) : void {
+        ?><div class="notice notice-<?= esc_attr( $notice['status'] ) ?> is-dismissible">
+            <p>
+                <strong><?= esc_html( $notice['title'] ) ?></strong><br />
+                <?= wp_kses_post( $notice['content'] ?? '' ) ?>
+            </p>
+        </div><?php
+    }
 }
 `;
 

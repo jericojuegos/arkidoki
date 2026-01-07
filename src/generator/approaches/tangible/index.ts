@@ -54,22 +54,35 @@ export class TangibleStrategy implements GeneratorStrategy {
         );
 
         // 2. Settings.php (includes/admin/Settings.php)
-        const tabsCode = config.modules.map(m => {
-            const className = m.name.charAt(0).toUpperCase() + m.name.slice(1);
-            return `'${m.slug}' => [
-                'title' => '${m.name}',
-                'callback' => function() {
-                    $module = new \\Tangible\\${config.projectNamespace}\\Admin\\${className}();
-                    $module->render();
-                }
-            ],`;
-        }).join('\n            ');
+        // 2. Settings.php
+        let moduleProperties = '';
+        let moduleInstantiations = '';
+        let moduleTabs = '';
 
-        const settingsContent = replacePlaceholders(SETTINGS_PHP, config).replace('// {{MODULE_TABS_REGISTRATION}}', tabsCode);
+        config.modules.forEach(module => {
+            const classProp = module.slug.replace(/-/g, '_'); // my_module
+            const className = module.name; // MyModule
+
+            moduleProperties += `    public ${className} $${classProp};\n`;
+            moduleInstantiations += `        $this->${classProp} = new ${className}();\n`;
+
+            moduleTabs += `                    '${module.slug}' => [
+                        'title' => '${className}',
+                        'title_section' => [
+                            'title'         => __( '${className}', '{{PLUGIN_SLUG}}' ),
+                            'description'   => __( 'Manage ${module.slug}.', '{{PLUGIN_SLUG}}' ),
+                        ],
+                        'callback' => [ $this->${classProp}, 'render' ],
+                    ],\n`;
+        });
+
         addFile(
             'Settings.php',
-            '/includes/admin/Settings.php',
-            settingsContent
+            '/includes/Admin/Settings.php',
+            replacePlaceholders(SETTINGS_PHP, config)
+                .replace('// {{MODULE_PROPERTIES}}', moduleProperties)
+                .replace('// {{MODULE_INSTANTIATIONS}}', moduleInstantiations)
+                .replace('// {{MODULE_TABS}}', moduleTabs)
         );
 
         const isIndependent = config.architecture === 'independent';
