@@ -7,6 +7,7 @@ import {
     TANGIBLE_CONFIG,
     ENQUEUE_SCRIPT_PHP,
     MODULE_ADMIN_CLASS,
+    CORE_CLASS_PHP,
     ABSTRACT_ENDPOINT_PHP,
     SETTINGS_ENDPOINT_PHP,
     MODULE_ENDPOINT_PHP,
@@ -197,6 +198,13 @@ export class TangibleStrategy implements GeneratorStrategy {
                 `${module.name}.php`,
                 `/includes/Admin/${module.name}.php`,
                 replacePlaceholders(MODULE_ADMIN_CLASS, config, module)
+            );
+
+            // Add Module Core Class
+            addFile(
+                `${module.name}.php`,
+                `/includes/Core/${module.name}.php`,
+                replacePlaceholders(CORE_CLASS_PHP, config, module)
             );
 
             addFile('index.tsx', `${basePath}/index.tsx`, buildReactEntryTemplate(config, module), 'typescript');

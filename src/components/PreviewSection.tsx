@@ -26,6 +26,7 @@ export const PreviewSection: React.FC<Props> = ({ files }) => {
     // Group files by type/module
     const mainFiles: { index: number; file: GeneratedFile }[] = [];
     const mainAdminFiles: { index: number; file: GeneratedFile }[] = [];
+    const mainCoreFiles: { index: number; file: GeneratedFile }[] = [];
     const mainApiFiles: { index: number; file: GeneratedFile }[] = [];
     const modules: Record<string, { index: number; file: GeneratedFile }[]> = {};
 
@@ -42,6 +43,10 @@ export const PreviewSection: React.FC<Props> = ({ files }) => {
         // 2. API Files (All files in includes/API)
         else if (path.toLowerCase().includes('/api/')) {
             mainApiFiles.push({ index: idx, file });
+        }
+        // 2.1 Core Domain Classes (All files in includes/Core)
+        else if (path.toLowerCase().includes('/core/')) {
+            mainCoreFiles.push({ index: idx, file });
         }
         // 3. Admin PHP Classes (All files in includes/Admin)
         else if (path.toLowerCase().includes('/admin/')) {
@@ -163,6 +168,22 @@ export const PreviewSection: React.FC<Props> = ({ files }) => {
                                     onClick={() => handleFileSwitch(index)}
                                 >
                                     <span className="file-icon">⚡</span>
+                                    {file.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {mainCoreFiles.length > 0 && (
+                        <div className="sidebar-group">
+                            <div className="group-label">Main - Core</div>
+                            {mainCoreFiles.map(({ index, file }) => (
+                                <button
+                                    key={index}
+                                    className={clsx('file-item', activeFileIndex === index && 'active')}
+                                    onClick={() => handleFileSwitch(index)}
+                                >
+                                    <span className="file-icon">🧠</span>
                                     {file.name}
                                 </button>
                             ))}
