@@ -196,14 +196,15 @@ body {
     }
 
     .sub-tabs {
-       margin-top: 0; /* Override previous margin */
+      margin-top: 0;
+      /* Override previous margin */
     }
   }
 
   .code-preview-scroll {
     flex: 1;
     overflow: auto;
-    
+
     pre {
       margin: 0;
       padding: 1.5rem;
@@ -231,7 +232,8 @@ body {
 
 /* Original Styles Backup/Maintenance */
 .code-preview {
-  display: none; /* Replaced by .preview-content */
+  display: none;
+  /* Replaced by .preview-content */
 }
 
 
@@ -383,5 +385,111 @@ body {
     border: none;
     border-radius: 3px;
     cursor: pointer;
+  }
+}
+
+/* VSCode-like File Explorer Styles */
+.file-explorer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #252526;
+  /* VSCode Dark Sidebar */
+  color: #cccccc;
+  font-family: 'Segoe WPC', 'Segoe UI', sans-serif;
+  user-select: none;
+}
+
+.explorer-header {
+  padding: 10px 20px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #bbbbbb;
+  letter-spacing: 0.5px;
+}
+
+.explorer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+.tree-node-row {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+  font-size: 13px;
+  color: #cccccc;
+
+  &:hover {
+    background-color: #2a2d2e;
+  }
+
+  &.active {
+    background-color: #37373d;
+    color: #ffffff;
+  }
+}
+
+.tree-node-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-toggle-icon {
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cccccc;
+
+  svg {
+    transform: scale(0.8);
+  }
+}
+
+.tree-icon {
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+}
+
+.tree-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+}
+
+@media (prefers-color-scheme: light) {
+  .file-explorer-container {
+    background-color: #f3f3f3;
+    color: #333333;
+  }
+
+  .tree-node-row {
+    color: #333333;
+
+    &:hover {
+      background-color: #e8e8e8;
+    }
+
+    &.active {
+      background-color: #d1d5da;
+      color: #000;
+    }
+  }
+
+  .explorer-header {
+    color: #6f6f6f;
+  }
+
+  .tree-toggle-icon {
+    color: #6f6f6f;
   }
 }
